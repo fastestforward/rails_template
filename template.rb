@@ -67,9 +67,11 @@ if yes?('** [PROMPT] Generate User and Session models and controllers for authlo
   model_name = 'user' if model_name.blank?
 
   git_commit_all "Adding #{model_name}_session model and controller." do
-  
+    
+    route("map.resource :#{model_name}_session")
+    
     generate(:session, "#{model_name}_session")
-
+    
     controller("#{model_name}_sessions", %Q{
   def new
     @#{model_name}_session = #{model_name.camelcase}Session.new
@@ -92,14 +94,13 @@ if yes?('** [PROMPT] Generate User and Session models and controllers for authlo
     end
     redirect_back_or_default new_user_session_url
   end
-  })
+  })    
   end
   
   git_commit_all "Adding #{model_name} model and controller. " do
 
-    model(model_name, "  acts_as_authentic")
-    migration("create_#{model_name.pluralize} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
-    
+    generate(:scaffold, "#{model_name} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
+    gsub_file(File.join('app', 'models', "#{model_name.camelcase}.rb"), /end/, " acts_as_authentic\nend\n")
     controller("#{model_name.pluralize}", %Q{
   def new
     @#{model_name} = #{model_name.camelcase}.new
@@ -132,13 +133,13 @@ if yes?('** [PROMPT] Generate User and Session models and controllers for authlo
       render :action => :edit
     end
   end
-  })
+  })  
   end
   
   git_commit_all "Adding authlogic helper methods to application_controller" do
 
-  puts "Adding Authlogic helper methods to ApplicationController."
-    gsub_file(File.join('app', 'controllers', 'application_controller.rb'), /end/, '\1' "
+    puts "Adding Authlogic helper methods to ApplicationController."
+    gsub_file(File.join('app', 'controllers', 'application_controller.rb'), /end/, "
   filter_parameter_logging :password, :password_confirmation
   helper_method :current_user_session, :current_user
 
