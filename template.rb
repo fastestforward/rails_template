@@ -3,7 +3,7 @@ def git_commit_all(message, options = '')
     yield
   end
   git :add => "."
-  git :commit => %Q{#{options} -m #{message.inspect}}
+  git :commit => %Q{#{options} -a -m #{message.inspect}}
 end
 
 git :init
