@@ -1,0 +1,8 @@
+= Fastest Forward Application Template
+
+Loosely based off of other templates and our standard codes.
+
+
+== Other Noteworthy Templates
+
+http://github.com/jeremymcanally/rails-templates/tree/master
