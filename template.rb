@@ -63,33 +63,33 @@ git_commit_all 'Capifying.'
 
 # google analytics?
 
-file('app/concerns/.gitignore')
-environment 'config.load_paths += %W( #{RAILS_ROOT}/app/concerns )'
-git_commit_all 'Adding concerns directory.'
+git_commit_all 'Adding concerns directory.' do
+  file('app/concerns/.gitignore')
+  environment 'config.load_paths += %W( #{RAILS_ROOT}/app/concerns )'
+end
 
+git_commit_all 'Recent schema.' do
+  rake "db:migrate"
+  rake "db:test:clone"
+end
 
-rake "db:migrate"
-rake "db:test:clone"
+git_commit_all 'Adding rspec and rspec-rails.' do
+  gem 'rspec', :lib => 'spec', :env => :test
+  gem 'rspec-rails', :lib => 'spec/rails', :env => :test
+  generate(:rspec)
+end
 
-git :add => "."
-git_commit_all 'Recent schema.'
+git_commit_all 'Adding remarkable.' do
+  gem 'carlosbrando-remarkable', :lib => 'remarkable', :source => "http://gems.github.com", :env => :test
+end
 
+git_commit_all 'Adding cucumber.' do
+  gem 'cucumber', :env => :test
+  generate(:cucumber)
+end
 
-gem 'rspec', :lib => 'spec', :env => :test
-gem 'rspec-rails', :lib => 'spec/rails', :env => :test
-generate(:rspec)
-
-git :add => "."
-git :commit => "-a -m 'Adding rspec and rspec-rails.'"
-
-gem 'carlosbrando-remarkable', :lib => 'remarkable', :source => "http://gems.github.com", :env => :test
-git_commit_all 'Adding remarkable.'
-
-gem 'cucumber', :env => :test
-generate(:cucumber)
-git_commit_all 'Adding cucumber.'
-
-run 'annotate'
-git_commit_all 'Recent annotations.'
+git_commit_all 'Recent annotations.' do
+  run 'annotate'
+end
 
 # TODO: push to github
