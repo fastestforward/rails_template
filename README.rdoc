@@ -2,7 +2,10 @@
 
 Loosely based off of other templates and our standard codes.
 
+* http://github.com/jeremymcanally/rails-templates/tree/master
 
-== Other Noteworthy Templates
 
-http://github.com/jeremymcanally/rails-templates/tree/master
+== Current Template Implementation
+
+http://github.com/rails/rails/blob/master/railties/lib/rails_generator/generators/applications/app/template_runner.rb
+
