@@ -7,10 +7,12 @@ def git_commit_all(message, options = '')
 end
 
 def controller(name, contents)
+  puts "generating controller: #{name.camelcase}Controller."
   file(File.join('app', 'controllers', "#{name}_controller.rb"), %Q{class #{name.camelcase}Controller < ApplicationController::Base\n#{contents}\nend})
 end
 
 def model(name, contents)
+  puts "generating model: #{name.camelcase}."
   file(File.join('app', 'models', "#{name}.rb"), %Q{class #{name.camelcase} < ActiveRecord::Base\n#{contents}\nend})
 end
 
@@ -60,8 +62,8 @@ end
 
 # Start Authlogic generation
 
-if yes?('Generate User and Session models and controllers for authlogic?')
-  model_name = ask('User model name?[default: User]').downcase
+if yes?('** [PROMPT] Generate User and Session models and controllers for authlogic? [y,N]')
+  model_name = ask('** [PROMPT] User model name? [default: User]').downcase
   model_name = 'user' if model_name.blank?
 
   git_commit_all "Adding #{model_name}_session model and controller." do
@@ -134,6 +136,8 @@ if yes?('Generate User and Session models and controllers for authlogic?')
   end
   
   git_commit_all "Adding authlogic helper methods to application_controller" do
+
+  puts "Adding Authlogic helper methods to ApplicationController."
     gsub_file(File.join('app', 'controllers', 'application_controller.rb'), /end/, '\1' "
   filter_parameter_logging :password, :password_confirmation
   helper_method :current_user_session, :current_user
