@@ -1,4 +1,7 @@
 def git_commit_all(message, options = '')
+  if block_given?
+    yield
+  end
   git :add => "."
   git :commit => %Q{#{options} -m #{message.inspect}}
 end
