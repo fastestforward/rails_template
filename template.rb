@@ -8,25 +8,26 @@ end
 
 git :init
 
-run "echo > README"
-run "rm public/index.html"
-run "rm public/images/rails.png"
-run "rm public/favicon.ico"
-run "rm public/robots.txt"
+git_commit_all 'Base Rails application.' do
+  run "echo > README"
+  run "rm public/index.html"
+  run "rm public/images/rails.png"
+  run "rm public/favicon.ico"
+  run "rm public/robots.txt"
 
-run "touch tmp/.gitignore log/.gitignore vendor/.gitignore"
-file '.gitignore', <<-END
-.DS_Store
-log/*
-tmp/**/*
-config/database.yml
-db/*.sqlite*
-END
+  run "touch tmp/.gitignore log/.gitignore vendor/.gitignore"
+  file '.gitignore', %w(
+    .DS_Store
+    log/*
+    tmp/**/*
+    config/database.yml
+    db/*.sqlite*
+  ).join("\n")
+end
 
-git_commit_all 'Base Rails application.'
-
-run "rm -rf test/"
-git_commit_all 'Removing TestUnit.'
+git_commit_all 'Removing TestUnit.' do
+  run "rm -rf test/"
+end
 
 
 gem 'populator', :env => :development
