@@ -59,8 +59,10 @@ git_commit_all 'Capifying.'
 
 # google analytics?
 
-# TODO: concerns
-# Rails.configuration.load_paths << File.join(RAILS_ROOT, 'app', 'concerns')
+file('app/concerns/.gitignore')
+environment 'config.load_paths += %W( #{RAILS_ROOT}/app/concerns )'
+git_commit_all 'Adding concerns directory.'
+
 
 rake "db:migrate"
 rake "db:test:clone"
