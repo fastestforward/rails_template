@@ -14,13 +14,13 @@ def model(name, contents)
   file(File.join('app', 'models', "#{name}.rb"), %Q{class #{name.camelcase} < ActiveRecord::Base\n#{contents}\nend})
 end
 
-def reindent(data, base)
+def reindent(data, base = 0)
   lines = data.split("\n")
-  smallest_indentation = lines.collect { |l| l =~ /\w/ }.min
+  smallest_indentation = lines.collect { |l| l =~ /\w/ }.compact.min
 
   lines.each do |line|
     line.gsub!(/^\s{#{smallest_indentation}}/, ' ' * base)
-  end 
+  end
   lines.join("\n")
 end
 
@@ -63,13 +63,13 @@ git_commit_all 'Base Rails application.' do
   run "rm public/robots.txt"
 
   run "touch tmp/.gitignore log/.gitignore vendor/.gitignore"
-  file '.gitignore', %w(
+  file '.gitignore', reindent('
     .DS_Store
     log/*
     tmp/**/*
     config/database.yml
     db/*.sqlite*
-  ).join("\n")
+  ')
   
   [nil, :development, :test, :production].each do |env|
     environment "\n", :env => env
