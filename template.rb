@@ -36,7 +36,6 @@ def add_to_top_of_class(file, data = nil, &block)
       match
     end
   end
-  puts File.read(file)
   raise "Did not add_to_top_of_class: #{file.inspect}" if match_count.zero?
 end
 
