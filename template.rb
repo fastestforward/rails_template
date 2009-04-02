@@ -374,8 +374,10 @@ end")
 end
 
 git_commit_all 'Added hoptoad to catch production exceptions.' do
-  # TODO: generate hoptoad api key, install catcher
+  # TODO: generate hoptoad api key, send test?
   plugin 'hoptoad_notifier', :git => "git://github.com/thoughtbot/hoptoad_notifier.git"
+  add_to_top_of_class File.join('app', 'controllers', 'application_controller.rb'), 
+    "include HoptoadNotifier::Catcher"
 end
 
 git_commit_all 'Added asset-version for cached asset expiry.' do
