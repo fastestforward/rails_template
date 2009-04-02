@@ -329,7 +329,6 @@ end
   
 git_commit_all "Added authlogic helper methods to application_controller" do
   gsub_file(File.join('app', 'controllers', 'application_controller.rb'), /end/, "
-  filter_parameter_logging :password, :password_confirmation
   helper_method :current_user_session, :current_user
 
   private
@@ -426,3 +425,7 @@ end
 # TODO: basic app layout
 
 # TODO: google analytics?
+
+# TODO: enable password filtering
+
+# TODO: statics controller
