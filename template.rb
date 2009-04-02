@@ -432,7 +432,12 @@ end
 
 # TODO: basic app layout
 
-# TODO: google analytics?
+git_commit_all 'Added Google Analyitcs tracking.' do
+  gem 'rubaidh-google_analytics', :lib => 'rubaidh/google_analytics', :source => 'http://gems.github.com'
+  initializer 'google_analytics.rb' do
+    "Rubaidh::GoogleAnalytics.tracker_id = ''"
+  end
+end
 
 # TODO: enable password filtering
 
