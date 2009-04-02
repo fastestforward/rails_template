@@ -39,6 +39,21 @@ def add_to_top_of_class(file, data = nil, &block)
   raise "Did not add_to_top_of_class(#{file}.inspect)" if match_count.zero?
 end
 
+def add_to_bottom_of_class(file, data = nil, &block)
+  data = block.call if !data && block_given?
+  data = reindent(data, 2).chomp
+  match_count = 0
+  gsub_file file, /^(end)$/i do |match|
+    match_count += 1
+    if match_count == 1 
+      "#{data}\n#{match}"
+    else
+      match
+    end
+  end
+  raise "Did not add_to_bottom_of_class(#{file}.inspect)" if match_count.zero?
+end
+
 def uncomment_line(file, line)
   gsub_file file, /#\s*#{Regexp.escape(line)}/, line
 end
@@ -138,129 +153,122 @@ git_commit_all 'Added newrelic_rpm for performance inspection in development and
   post_instruction 'Install and configure Newrelic: config/newrelic.yml'
 end
 
-git_commit_all 'Added authlogic for application authentication.' do
-  gem 'authlogic'
-end
-
 git_commit_all 'Setting sessions to expire after 2 weeks.' do
   initializer 'sessions.rb' do
     'ActionController::Base.session_options[:expire_after] = 2.weeks'
   end
 end
 
-model_name = 'person' if model_name.blank?
+git_commit_all 'Added authlogic for application authentication.' do
+  gem 'authlogic'
+  model_name = 'person'
 
-git_commit_all "Added #{model_name}_session model and controller." do
   route("map.resource :#{model_name}_session")
   
   generate(:session, "#{model_name}_session")
     
-  controller("#{model_name}_sessions", %Q{
-  def new
-    @#{model_name}_session = #{model_name.camelcase}Session.new
-  end
-
-  def create
-    @#{model_name}_session = #{model_name.camelcase}Session.new(params[:#{model_name}_session])
-    if @#{model_name}_session.save
-      flash[:notice] = "Login successful!"
-      redirect_back_or_default root_path
-    else
-      render :action => :new
+  controller "#{model_name}_sessions", reindent(%Q{
+    def new
+      @#{model_name}_session = #{model_name.camelcase}Session.new
     end
-  end
 
-  def destroy
-    if current_#{model_name}_session
-      current_#{model_name}_session.destroy
-      flash[:notice] = "Logout successful!"
+    def create
+      @#{model_name}_session = #{model_name.camelcase}Session.new(params[:#{model_name}_session])
+      if @#{model_name}_session.save
+        flash[:notice] = "Login successful!"
+        redirect_back_or_default root_path
+      else
+        render :action => :new
+      end
     end
-    redirect_back_or_default new_user_session_url
-  end
-  })    
-end
-  
-git_commit_all "Added #{model_name} model and controller. " do
+
+    def destroy
+      if current_#{model_name}_session
+        current_#{model_name}_session.destroy
+        flash[:notice] = "Logout successful!"
+      end
+      redirect_back_or_default new_user_session_url
+    end
+  }, 2)    
+
   generate(:scaffold, "#{model_name} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
   gsub_file(File.join('app', 'models', "#{model_name.camelcase}.rb"), /end/, " acts_as_authentic\nend\n")
-  controller("#{model_name.pluralize}", %Q{
-  def new
-    @#{model_name} = #{model_name.camelcase}.new
-  end
-
-  def create
-    @#{model_name} = #{model_name.camelcase}.new(params[:#{model_name}])
-    if @#{model_name}.save
-      flash[:notice] = "Account registered!"
-      redirect_back_or_default #{model_name}_path(@#{model_name})
-    else
-      render :action => :new
+  controller "#{model_name.pluralize}", reindent(%Q{
+    def new
+      @#{model_name} = #{model_name.camelcase}.new
     end
-  end
 
-  def show
-    @#{model_name} = current_#{model_name}
-  end
-
-  def edit
-    @#{model_name} = current_#{model_name}
-  end
-
-  def update
-    @#{model_name} = current_#{model_name}
-    if @#{model_name}.update_attributes(params[:#{model_name}])
-      flash[:notice] = "Account updated!"
-      redirect_to #{model_name}_path(@#{model_name})
-    else
-      render :action => :edit
+    def create
+      @#{model_name} = #{model_name.camelcase}.new(params[:#{model_name}])
+      if @#{model_name}.save
+        flash[:notice] = "Account registered!"
+        redirect_back_or_default #{model_name}_path(@#{model_name})
+      else
+        render :action => :new
+      end
     end
-  end
-  })  
-end
+
+    def show
+      @#{model_name} = current_#{model_name}
+    end
+
+    def edit
+      @#{model_name} = current_#{model_name}
+    end
+
+    def update
+      @#{model_name} = current_#{model_name}
+      if @#{model_name}.update_attributes(params[:#{model_name}])
+        flash[:notice] = "Account updated!"
+        redirect_to #{model_name}_path(@#{model_name})
+      else
+        render :action => :edit
+      end
+    end
+  }, 2)
+
+  add_to_bottom_of_class File.join('app', 'controllers', 'application_controller.rb'), reindent("
+    helper_method :current_user_session, :current_user
+
+    private
   
-git_commit_all "Added authlogic helper methods to application_controller" do
-  gsub_file(File.join('app', 'controllers', 'application_controller.rb'), /end/, "
-  helper_method :current_user_session, :current_user
-
-  private
-  
-  def current_#{model_name}_session
-    return @current_#{model_name}_session if defined?(@current_#{model_name}_session)
-    @current_#{model_name}_session = #{model_name.camelcase}Session.find
-  end
-
-  def current_#{model_name}
-    return @current_#{model_name} if defined?(@current_#{model_name})
-    @current_#{model_name} = current_#{model_name}_session && current_#{model_name}_session.#{model_name}
-  end
-
-  def require_#{model_name}
-    unless current_#{model_name}
-      store_location
-      flash[:notice] = \"You must be logged in to access this page\"
-      redirect_to new_#{model_name}_session_url
-      return false
+    def current_#{model_name}_session
+      return @current_#{model_name}_session if defined?(@current_#{model_name}_session)
+      @current_#{model_name}_session = #{model_name.camelcase}Session.find
     end
-  end
 
-  def require_no_#{model_name}
-    if current_#{model_name}
-      store_location
-      flash[:notice] = \"You must be logged out to access this page\"
-      redirect_to root_path
-      return false
+    def current_#{model_name}
+      return @current_#{model_name} if defined?(@current_#{model_name})
+      @current_#{model_name} = current_#{model_name}_session && current_#{model_name}_session.#{model_name}
     end
-  end
 
-  def store_location
-    session[:return_to] = request.request_uri
-  end
+    def require_#{model_name}
+      unless current_#{model_name}
+        store_location
+        flash[:notice] = \"You must be logged in to access this page\"
+        redirect_to new_#{model_name}_session_url
+        return false
+      end
+    end
 
-  def redirect_back_or_default(default)
-    redirect_to(session[:return_to] || default)
-    session[:return_to] = nil
-  end  
-end")
+    def require_no_#{model_name}
+      if current_#{model_name}
+        store_location
+        flash[:notice] = \"You must be logged out to access this page\"
+        redirect_to root_path
+        return false
+      end
+    end
+
+    def store_location
+      session[:return_to] = request.request_uri
+    end
+
+    def redirect_back_or_default(default)
+      redirect_to(session[:return_to] || default)
+      session[:return_to] = nil
+    end  
+  ", 2)
 end
 
 git_commit_all 'Added hoptoad to catch production exceptions.' do
