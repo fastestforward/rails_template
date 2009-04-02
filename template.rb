@@ -28,15 +28,16 @@ def add_to_top_of_class(file, data = nil, &block)
   data = block.call if !data && block_given?
   data = reindent(data, 2).chomp
   match_count = 0
-  gsub_file file, /(\Wclass\s+.*\n)/i do |match|
+  gsub_file file, /\b(class\s+.*)/ do |match|
     match_count += 1
     if match_count == 1 
-      "#{match}#{data}\n"
+      "#{match}\n#{data}\n"
     else
       match
     end
   end
-  raise "Did not add_to_top_of_class(#{file}.inspect)" if match_count.zero?
+  puts File.read(file)
+  raise "Did not add_to_top_of_class: #{file.inspect}" if match_count.zero?
 end
 
 def add_to_bottom_of_class(file, data = nil, &block)
@@ -51,7 +52,7 @@ def add_to_bottom_of_class(file, data = nil, &block)
       match
     end
   end
-  raise "Did not add_to_bottom_of_class(#{file}.inspect)" if match_count.zero?
+  raise "Did not add_to_bottom_of_class: #{file.inspect}" if match_count.zero?
 end
 
 def uncomment_line(file, line)
@@ -170,7 +171,9 @@ git_commit_all 'Added authlogic for application authentication.' do
   route("map.resource :#{model_name}_session")
   
   generate(:session, "#{model_name}_session")
-    
+  
+  generate 'rspec_controller', "#{model_name}_sessions new destroy"
+  
   controller "#{model_name}_sessions", reindent(%Q{
     def new
       @#{model_name}_session = #{model_name.camelcase}Session.new
@@ -195,8 +198,8 @@ git_commit_all 'Added authlogic for application authentication.' do
     end
   }, 2)    
 
-  generate(:scaffold, "#{model_name} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
-  gsub_file(File.join('app', 'models', "#{model_name.camelcase}.rb"), /end/, " acts_as_authentic\nend\n")
+  generate('rspec_scaffold', "#{model_name} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
+  add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
   controller "#{model_name.pluralize}", reindent(%Q{
     def new
       @#{model_name} = #{model_name.camelcase}.new
@@ -273,6 +276,8 @@ git_commit_all 'Added authlogic for application authentication.' do
       session[:return_to] = nil
     end  
   ", 2)
+  
+  remove_view_specs
 end
 
 git_commit_all 'Added hoptoad to catch production exceptions.' do
