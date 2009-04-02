@@ -420,6 +420,10 @@ git_commit_all 'Added cucumber for acceptance testing.' do
   generate(:cucumber)
 end
 
+git_commit_all 'Added factory_girl for test object creation' do
+  gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source => 'http://gems.github.com', :env => :test
+end
+
 git_commit_all 'Most recent annotations.' do
   run 'annotate'
 end
