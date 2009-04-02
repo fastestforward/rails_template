@@ -91,6 +91,10 @@ def show_post_instructions
   end
 end
 
+def remove_view_specs
+  run 'rm -r spec/views'
+end
+
 git :init
 
 git_commit_all 'Base Rails application.' do
@@ -347,10 +351,12 @@ end
 
 git_commit_all 'Generated a StaticsController for static pages.' do
   generate 'rspec_controller', 'statics about contact privacy 404 500'
+  remove_view_specs
 end
 
 git_commit_all 'Added a staging environment with identical contents to production.' do
   run 'cp config/environments/production.rb config/environments/staging.rb'
 end
+
 
 show_post_instructions
