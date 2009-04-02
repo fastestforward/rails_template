@@ -70,6 +70,10 @@ git_commit_all 'Base Rails application.' do
     config/database.yml
     db/*.sqlite*
   ).join("\n")
+  
+  [nil, :development, :test, :production].each do |env|
+    environment "\n", :env => env
+  end
 end
 
 git_commit_all 'Added populator and faker for seed data generation.' do
