@@ -39,6 +39,10 @@ def add_to_top_of_class(file, data = nil, &block)
   raise "Did not add_to_top_of_class(#{file}.inspect)" if match_count.zero?
 end
 
+def uncomment_line(file, line)
+  gsub_file file, /#\s*#{Regexp.escape(line)}/, line
+end
+  
 def migration(*args)
   generate(:migration, args.join(' '))
 end
@@ -74,6 +78,8 @@ git_commit_all 'Base Rails application.' do
   [nil, :development, :test, :production].each do |env|
     environment "\n", :env => env
   end
+  
+  uncomment_line File.join('app', 'controllers', 'application_controller.rb'), 'filter_parameter_logging :password'
 end
 
 git_commit_all 'Added populator and faker for seed data generation.' do
@@ -300,8 +306,6 @@ git_commit_all 'Added Google Analyitcs tracking.' do
     "Rubaidh::GoogleAnalytics.tracker_id = ''"
   end
 end
-
-# TODO: enable password filtering
 
 git_commit_all 'Generated a StaticsController for static pages.' do
   generate 'rspec_controller', 'statics about contact privacy 404 500'
