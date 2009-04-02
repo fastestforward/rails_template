@@ -436,4 +436,6 @@ end
 
 # TODO: enable password filtering
 
-# TODO: statics controller
+git_commit_all 'Generated a StaticsController for static pages.' do
+  generate 'rspec_controller', 'statics about contact privacy 404 500'
+end
