@@ -17,6 +17,7 @@ end
 def migration(*args)
   generate(:migration, args.join(' '))
 end
+
 git :init
 
 git_commit_all 'Base Rails application.' do
@@ -36,29 +37,25 @@ git_commit_all 'Base Rails application.' do
   ).join("\n")
 end
 
-git_commit_all 'Removing TestUnit.' do
-  run "rm -rf test/"
-end
-
 git_commit_all 'Added populator and faker for seed data generation.' do
   gem 'populator', :env => :development
   gem 'faker', :env => :development
 end
 
-git_commit_all 'Adding rails-footnotes for easy development inspection and debugging.' do
+git_commit_all 'Added rails-footnotes for easy development inspection and debugging.' do
   gem "josevalim-rails-footnotes",  :lib => "rails-footnotes", :source => "http://gems.github.com", :env => :development
 end
 
-git_commit_all 'Adding railmail2 for development email inspection.' do
+git_commit_all 'Added railmail2 for development email inspection.' do
   plugin 'railmail2', :git => 'git://github.com/theoooo/railmail2.git'
   environment 'ActionMailer::Base.delivery_method = :railmail', :env => :development
 end
 
-git_commit_all 'Adding annotate_models to display database schema in model files.' do
+git_commit_all 'Added annotate_models to display database schema in model files.' do
   gem 'annotate-models', :lib => 'annotate_models', :env => :development
 end
 
-git_commit_all 'Adding limerick_rake for handy rake tasks.' do
+git_commit_all 'Added limerick_rake for handy rake tasks.' do
   plugin 'limerick_rake', :git => "git://github.com/thoughtbot/limerick_rake.git"
 end
 
@@ -71,11 +68,11 @@ git_commit_all 'Added newrelic_rpm for performance inspection in development and
   gem "newrelic_rpm" # TODO: get a default newrelic.yml
 end
 
-git_commit_all 'Adding authlogic for application authentication.' do
+git_commit_all 'Added authlogic for application authentication.' do
   gem 'authlogic'
 end
 
-git_commit_all 'Setting sessions to expire after 2 weeks' do
+git_commit_all 'Setting sessions to expire after 2 weeks.' do
   initializer 'sessions.rb' do
     'ActionController::Base.session_options[:expire_after] = 2.weeks'
   end
@@ -83,7 +80,7 @@ end
 
 model_name = 'person' if model_name.blank?
 
-git_commit_all "Adding #{model_name}_session model and controller." do
+git_commit_all "Added #{model_name}_session model and controller." do
   route("map.resource :#{model_name}_session")
   
   generate(:session, "#{model_name}_session")
@@ -113,7 +110,7 @@ git_commit_all "Adding #{model_name}_session model and controller." do
   })    
 end
   
-git_commit_all "Adding #{model_name} model and controller. " do
+git_commit_all "Added #{model_name} model and controller. " do
   generate(:scaffold, "#{model_name} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
   gsub_file(File.join('app', 'models', "#{model_name.camelcase}.rb"), /end/, " acts_as_authentic\nend\n")
   controller("#{model_name.pluralize}", %Q{
@@ -151,7 +148,7 @@ git_commit_all "Adding #{model_name} model and controller. " do
   })  
 end
   
-git_commit_all "Adding authlogic helper methods to application_controller" do
+git_commit_all "Added authlogic helper methods to application_controller" do
   gsub_file(File.join('app', 'controllers', 'application_controller.rb'), /end/, "
   filter_parameter_logging :password, :password_confirmation
   helper_method :current_user_session, :current_user
@@ -197,48 +194,54 @@ git_commit_all "Adding authlogic helper methods to application_controller" do
 end")
 end
 
-git_commit_all 'Adding hoptoad to catch production exceptions.' do
+git_commit_all 'Added hoptoad to catch production exceptions.' do
   # TODO: generate hoptoad api key
   plugin 'hoptoad_notifier', :git => "git://github.com/thoughtbot/hoptoad_notifier.git"
 end
 
-git_commit_all 'Adding asset-version for cached asset expiry.' do
+git_commit_all 'Added asset-version for cached asset expiry.' do
   plugin 'kristopher-asset-version', :git => 'git://github.com/kristopher/asset-version'
 end
 
-git_commit_all 'Capifying.' do
+git_commit_all 'Basic capistrano setup.' do
   capify!
 end
 
-# TODO: google analytics?
-
-git_commit_all 'Adding concerns directory.' do
+git_commit_all 'Added concerns directory to store reusable modules.' do
   file('app/concerns/.gitignore')
   environment 'config.load_paths += %W( #{RAILS_ROOT}/app/concerns )'
 end
 
-git_commit_all 'Recent schema.' do
+git_commit_all 'Most recent schema.' do
   rake "db:migrate"
   rake "db:test:clone"
 end
 
-git_commit_all 'Adding rspec and rspec-rails.' do
+git_commit_all 'Removing default test directory in favor of rspec and cucumber.' do
+  run "rm -rf test/"
+end
+
+git_commit_all 'Added rspec and rspec-rails.' do
   gem 'rspec', :lib => 'spec', :env => :test
   gem 'rspec-rails', :lib => 'spec/rails', :env => :test
   generate(:rspec)
 end
 
-git_commit_all 'Adding remarkable.' do
+git_commit_all 'Added remarkable to spec simple things simply.' do
   gem 'carlosbrando-remarkable', :lib => 'remarkable', :source => "http://gems.github.com", :env => :test
 end
 
-git_commit_all 'Adding cucumber.' do
+git_commit_all 'Added cucumber for acceptance testing.' do
   gem 'cucumber', :env => :test
   generate(:cucumber)
 end
 
-git_commit_all 'Recent annotations.' do
+git_commit_all 'Most recent annotations.' do
   run 'annotate'
 end
 
 # TODO: push to github
+
+# TODO: basic app layout
+
+# TODO: google analytics?
