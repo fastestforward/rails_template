@@ -47,7 +47,7 @@ git_commit_all 'Added rails-footnotes for easy development inspection and debugg
 end
 
 git_commit_all 'Added railmail2 for development email inspection.' do
-  plugin 'railmail2', :git => 'git://github.com/theoooo/railmail2.git'
+  gem 'jqr-railmail', :lib => 'railmail', :source => 'git://github.com/jqr/railmail.git'
   environment 'ActionMailer::Base.delivery_method = :railmail', :env => :development
 end
 
