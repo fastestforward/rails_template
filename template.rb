@@ -40,21 +40,38 @@ git_commit_all 'Removing TestUnit.' do
   run "rm -rf test/"
 end
 
-git_commit_all 'Added development helpers: populator, faker, rails-footnotes, railmail2, annotate-models and limerick_rake.' do
+git_commit_all 'Added populator and faker for seed data generation.' do
   gem 'populator', :env => :development
   gem 'faker', :env => :development
-  gem "josevalim-rails-footnotes",  :lib => "rails-footnotes", :source => "http://gems.github.com", :env => :development
-  plugin 'railmail2', :git => 'git://github.com/theoooo/railmail2.git'
-  environment 'ActionMailer::Base.delivery_method = :railmail', :env => :development
-  gem 'annotate-models', :lib => 'annotate_models', :env => :development
-  plugin 'limerick_rake', :git => "git://github.com/thoughtbot/limerick_rake.git"
 end
 
+git_commit_all 'Adding rails-footnotes for easy development inspection and debugging.' do
+  gem "josevalim-rails-footnotes",  :lib => "rails-footnotes", :source => "http://gems.github.com", :env => :development
+end
+
+git_commit_all 'Adding railmail2 for development email inspection.' do
+  plugin 'railmail2', :git => 'git://github.com/theoooo/railmail2.git'
+  environment 'ActionMailer::Base.delivery_method = :railmail', :env => :development
+end
+
+git_commit_all 'Adding annotate_models to display database schema in model files.' do
+  gem 'annotate-models', :lib => 'annotate_models', :env => :development
+end
+
+git_commit_all 'Adding limerick_rake for handy rake tasks.' do
+  plugin 'limerick_rake', :git => "git://github.com/thoughtbot/limerick_rake.git"
+end
 
 git_commit_all 'Added general libraries: paperclip, will_paginate, newrelic_rpm and authlogic.' do
   gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
   gem 'mislav-will_paginate', :lib => 'will_paginate', :source => 'http://gems.github.com'
+end
+
+git_commit_all 'Added newrelic_rpm for performance inspection in development and production.' do
   gem "newrelic_rpm" # TODO: get a default newrelic.yml
+end
+
+git_commit_all 'Adding authlogic for application authentication.' do
   gem 'authlogic'
 end
 
@@ -180,9 +197,12 @@ git_commit_all "Adding authlogic helper methods to application_controller" do
 end")
 end
 
-git_commit_all 'Adding production helpers: hoptoad_notifier and asset-version.' do
+git_commit_all 'Adding hoptoad to catch production exceptions.' do
   # TODO: generate hoptoad api key
   plugin 'hoptoad_notifier', :git => "git://github.com/thoughtbot/hoptoad_notifier.git"
+end
+
+git_commit_all 'Adding asset-version for cached asset expiry.' do
   plugin 'kristopher-asset-version', :git => 'git://github.com/kristopher/asset-version'
 end
 
