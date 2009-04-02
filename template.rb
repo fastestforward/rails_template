@@ -57,6 +57,25 @@ def application_name
   @application_name
 end
 
+def post_instructions
+  @post_instructions ||= []
+end
+
+def post_instruction(instruction)
+  post_instructions << instruction
+end
+
+def show_post_instructions
+  unless post_instructions.empty?
+    puts "=" * 80
+    puts "Remaining tasks: "
+    post_instructions.each do |instruction|
+      puts "  * #{instruction}"
+    end
+    puts "=" * 80
+  end
+end
+
 git :init
 
 git_commit_all 'Base Rails application.' do
@@ -115,6 +134,8 @@ end
 git_commit_all 'Added newrelic_rpm for performance inspection in development and production.' do
   gem "newrelic_rpm"
   file 'config/newrelic.yml', ''
+  
+  post_instruction 'Install and configure Newrelic: config/newrelic.yml'
 end
 
 git_commit_all 'Added authlogic for application authentication.' do
@@ -252,6 +273,8 @@ git_commit_all 'Added hoptoad to catch production exceptions.' do
   plugin 'hoptoad_notifier', :git => "git://github.com/thoughtbot/hoptoad_notifier.git"
   add_to_top_of_class File.join('app', 'controllers', 'application_controller.rb'), 
     "include HoptoadNotifier::Catcher"
+
+  post_instruction 'Configure Hoptoad: config/initializer/hoptoad.rb'
 end
 
 git_commit_all 'Added asset-version for cached asset expiry.' do
@@ -260,6 +283,7 @@ end
 
 git_commit_all 'Basic capistrano setup.' do
   capify!
+  post_instruction 'Configure Capistrano: config/deploy.rb'
 end
 
 git_commit_all 'Added concerns directory to store reusable modules.' do
@@ -310,6 +334,7 @@ git_commit_all 'Added Google Analyitcs tracking.' do
   initializer 'google_analytics.rb' do
     "Rubaidh::GoogleAnalytics.tracker_id = ''"
   end
+  post_instruction 'Configure Google Analytics: config/initializer/google_analytics.rb'
 end
 
 git_commit_all 'Generated a StaticsController for static pages.' do
@@ -319,3 +344,5 @@ end
 git_commit_all 'Added a staging environment with identical contents to production.' do
   run 'cp config/environments/production.rb config/environments/staging.rb'
 end
+
+show_post_instructions
