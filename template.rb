@@ -14,6 +14,31 @@ def model(name, contents)
   file(File.join('app', 'models', "#{name}.rb"), %Q{class #{name.camelcase} < ActiveRecord::Base\n#{contents}\nend})
 end
 
+def reindent(data, base)
+  lines = data.split("\n")
+  smallest_indentation = lines.collect { |l| l =~ /\w/ }.min
+
+  lines.each do |line|
+    line.gsub!(/^\s{#{smallest_indentation}}/, ' ' * base)
+  end 
+  lines.join("\n")
+end
+
+def add_to_top_of_class(file, data = nil, &block)
+  data = block.call if !data && block_given?
+  data = reindent(data, 2).chomp
+  match_count = 0
+  gsub_file file, /(\Wclass\s+.*\n)/i do |match|
+    match_count += 1
+    if match_count == 1 
+      "#{match}#{data}\n"
+    else
+      match
+    end
+  end
+  raise "Did not add_to_top_of_class(#{file}.inspect)" if match_count.zero?
+end
+
 def migration(*args)
   generate(:migration, args.join(' '))
 end
