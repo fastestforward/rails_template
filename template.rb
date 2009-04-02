@@ -18,6 +18,16 @@ def migration(*args)
   generate(:migration, args.join(' '))
 end
 
+def application_name
+  unless @application_name
+    in_root do
+      @application_name = File.basename(Dir.pwd)
+    end
+  end
+  
+  @application_name
+end
+
 git :init
 
 git_commit_all 'Base Rails application.' do
@@ -70,7 +80,7 @@ end
 git_commit_all 'Added newrelic_rpm for performance inspection in development and production.' do
   gem "newrelic_rpm" # TODO: get a default newrelic.yml
   file 'config/newrelic.yml', 
-%q{
+%Q{
   # here are the settings that are common to all environments
   common: &default_settings
     # ============================== LICENSE KEY ===============================
@@ -91,7 +101,7 @@ git_commit_all 'Added newrelic_rpm for performance inspection in development and
     # RPM will then auto-map instances of your application into a RPM "application"
     # on your home dashboard page. This setting does not prevent you from manually
     # defining applications.
-    app_name: GAA
+    app_name: #{application_name}
 
     # the 'enabled' setting is used to turn on the NewRelic Agent.  When false,
     # your application is not instrumented and the Agent does not start up or
@@ -208,7 +218,7 @@ git_commit_all 'Added newrelic_rpm for performance inspection in development and
   staging:
     <<: *default_settings
     enabled: true
-    app_name: #{application} (Staging)
+    app_name: #{application_name} (Staging)
 }
 end
 
