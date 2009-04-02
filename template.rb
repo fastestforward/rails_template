@@ -113,7 +113,7 @@ git_commit_all 'Added will_paginate for pagination.' do
 end
 
 git_commit_all 'Added newrelic_rpm for performance inspection in development and production.' do
-  gem "newrelic_rpm" # TODO: get a default newrelic.yml
+  gem "newrelic_rpm"
   file 'config/newrelic.yml', ''
 end
 
