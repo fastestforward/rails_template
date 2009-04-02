@@ -252,8 +252,10 @@ git_commit_all 'Basic capistrano setup.' do
 end
 
 git_commit_all 'Added concerns directory to store reusable modules.' do
+  original_load_paths = '# config.load_paths += %W( #{RAILS_ROOT}/extras )'
+  new_load_paths = 'config.load_paths += %W( #{RAILS_ROOT}/app/concerns )'
+  gsub_file 'config/environment.rb', /#{Regexp.escape(original_load_paths)}/, new_load_paths
   file('app/concerns/.gitignore')
-  environment 'config.load_paths += %W( #{RAILS_ROOT}/app/concerns )'
 end
 
 git_commit_all 'Most recent schema.' do
