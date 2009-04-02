@@ -58,6 +58,11 @@ git_commit_all 'Added general libraries: paperclip, will_paginate, newrelic_rpm 
   gem 'authlogic'
 end
 
+git_commit_all 'Setting sessions to expire after 2 weeks' do
+  initializer 'sessions.rb' do
+    'ActionController::Base.session_options[:expire_after] = 2.weeks'
+  end
+end
 
 model_name = ask('** [PROMPT] User model name? [default: User]').downcase
 model_name = 'user' if model_name.blank?
