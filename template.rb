@@ -198,7 +198,7 @@ end")
 end
 
 git_commit_all 'Added hoptoad to catch production exceptions.' do
-  # TODO: generate hoptoad api key
+  # TODO: generate hoptoad api key, install catcher
   plugin 'hoptoad_notifier', :git => "git://github.com/thoughtbot/hoptoad_notifier.git"
 end
 
