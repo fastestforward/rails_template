@@ -59,8 +59,11 @@ git_commit_all 'Added limerick_rake for handy rake tasks.' do
   plugin 'limerick_rake', :git => "git://github.com/thoughtbot/limerick_rake.git"
 end
 
-git_commit_all 'Added general libraries: paperclip, will_paginate, newrelic_rpm and authlogic.' do
+git_commit_all 'Added paperclip for handling attachments.' do
   gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
+end
+
+git_commit_all 'Added will_paginate for pagination.' do
   gem 'mislav-will_paginate', :lib => 'will_paginate', :source => 'http://gems.github.com'
 end
 
