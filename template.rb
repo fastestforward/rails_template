@@ -60,19 +60,16 @@ git_commit_all 'Added general libraries: paperclip, will_paginate, newrelic_rpm 
   gem 'authlogic'
 end
 
-# Start Authlogic generation
 
-if yes?('** [PROMPT] Generate User and Session models and controllers for authlogic? [y,N]')
-  model_name = ask('** [PROMPT] User model name? [default: User]').downcase
-  model_name = 'user' if model_name.blank?
+model_name = ask('** [PROMPT] User model name? [default: User]').downcase
+model_name = 'user' if model_name.blank?
 
-  git_commit_all "Adding #{model_name}_session model and controller." do
+git_commit_all "Adding #{model_name}_session model and controller." do
+  route("map.resource :#{model_name}_session")
+  
+  generate(:session, "#{model_name}_session")
     
-    route("map.resource :#{model_name}_session")
-    
-    generate(:session, "#{model_name}_session")
-    
-    controller("#{model_name}_sessions", %Q{
+  controller("#{model_name}_sessions", %Q{
   def new
     @#{model_name}_session = #{model_name.camelcase}Session.new
   end
@@ -95,13 +92,12 @@ if yes?('** [PROMPT] Generate User and Session models and controllers for authlo
     redirect_back_or_default new_user_session_url
   end
   })    
-  end
+end
   
-  git_commit_all "Adding #{model_name} model and controller. " do
-
-    generate(:scaffold, "#{model_name} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
-    gsub_file(File.join('app', 'models', "#{model_name.camelcase}.rb"), /end/, " acts_as_authentic\nend\n")
-    controller("#{model_name.pluralize}", %Q{
+git_commit_all "Adding #{model_name} model and controller. " do
+  generate(:scaffold, "#{model_name} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
+  gsub_file(File.join('app', 'models', "#{model_name.camelcase}.rb"), /end/, " acts_as_authentic\nend\n")
+  controller("#{model_name.pluralize}", %Q{
   def new
     @#{model_name} = #{model_name.camelcase}.new
   end
@@ -134,57 +130,53 @@ if yes?('** [PROMPT] Generate User and Session models and controllers for authlo
     end
   end
   })  
-  end
+end
   
-  git_commit_all "Adding authlogic helper methods to application_controller" do
-
-    puts "Adding Authlogic helper methods to ApplicationController."
-    gsub_file(File.join('app', 'controllers', 'application_controller.rb'), /end/, "
+git_commit_all "Adding authlogic helper methods to application_controller" do
+  gsub_file(File.join('app', 'controllers', 'application_controller.rb'), /end/, "
   filter_parameter_logging :password, :password_confirmation
   helper_method :current_user_session, :current_user
 
-   private
-     def current_#{model_name}_session
-       return @current_#{model_name}_session if defined?(@current_#{model_name}_session)
-       @current_#{model_name}_session = #{model_name.camelcase}Session.find
-     end
-
-     def current_#{model_name}
-       return @current_#{model_name} if defined?(@current_#{model_name})
-       @current_#{model_name} = current_#{model_name}_session && current_#{model_name}_session.#{model_name}
-     end
-
-     def require_#{model_name}
-        unless current_#{model_name}
-          store_location
-          flash[:notice] = \"You must be logged in to access this page\"
-          redirect_to new_#{model_name}_session_url
-          return false
-        end
-      end
-
-      def require_no_#{model_name}
-        if current_#{model_name}
-          store_location
-          flash[:notice] = \"You must be logged out to access this page\"
-          redirect_to root_path
-          return false
-        end
-      end
-
-      def store_location
-        session[:return_to] = request.request_uri
-      end
-
-      def redirect_back_or_default(default)
-        redirect_to(session[:return_to] || default)
-        session[:return_to] = nil
-      end  
-end")
+  private
+  
+  def current_#{model_name}_session
+    return @current_#{model_name}_session if defined?(@current_#{model_name}_session)
+    @current_#{model_name}_session = #{model_name.camelcase}Session.find
   end
-end
 
-# END Authlogic generation
+  def current_#{model_name}
+    return @current_#{model_name} if defined?(@current_#{model_name})
+    @current_#{model_name} = current_#{model_name}_session && current_#{model_name}_session.#{model_name}
+  end
+
+  def require_#{model_name}
+    unless current_#{model_name}
+      store_location
+      flash[:notice] = \"You must be logged in to access this page\"
+      redirect_to new_#{model_name}_session_url
+      return false
+    end
+  end
+
+  def require_no_#{model_name}
+    if current_#{model_name}
+      store_location
+      flash[:notice] = \"You must be logged out to access this page\"
+      redirect_to root_path
+      return false
+    end
+  end
+
+  def store_location
+    session[:return_to] = request.request_uri
+  end
+
+  def redirect_back_or_default(default)
+    redirect_to(session[:return_to] || default)
+    session[:return_to] = nil
+  end  
+end")
+end
 
 git_commit_all 'Adding production helpers: hoptoad_notifier and asset-version.' do
   # TODO: generate hoptoad api key
