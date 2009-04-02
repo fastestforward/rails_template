@@ -439,3 +439,7 @@ end
 git_commit_all 'Generated a StaticsController for static pages.' do
   generate 'rspec_controller', 'statics about contact privacy 404 500'
 end
+
+git_commit_all 'Added a staging environment with identical contents to production.' do
+  run 'cp config/environments/production.rb config/environments/staging.rb'
+end
