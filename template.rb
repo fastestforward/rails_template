@@ -64,8 +64,7 @@ git_commit_all 'Setting sessions to expire after 2 weeks' do
   end
 end
 
-model_name = ask('** [PROMPT] User model name? [default: User]').downcase
-model_name = 'user' if model_name.blank?
+model_name = 'person' if model_name.blank?
 
 git_commit_all "Adding #{model_name}_session model and controller." do
   route("map.resource :#{model_name}_session")
