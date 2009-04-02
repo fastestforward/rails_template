@@ -243,7 +243,12 @@ end")
 end
 
 git_commit_all 'Added hoptoad to catch production exceptions.' do
-  # TODO: generate hoptoad api key, send test?
+  initializer 'hoptoad.rb', reindent('
+    HoptoadNotifier.configure do |config|
+      # config.api_key = ''
+    end
+  ')
+
   plugin 'hoptoad_notifier', :git => "git://github.com/thoughtbot/hoptoad_notifier.git"
   add_to_top_of_class File.join('app', 'controllers', 'application_controller.rb'), 
     "include HoptoadNotifier::Catcher"
