@@ -343,10 +343,6 @@ git_commit_all 'Most recent annotations.' do
   run 'annotate'
 end
 
-# TODO: push to github
-
-# TODO: basic app layout
-
 git_commit_all 'Added Google Analyitcs tracking.' do
   gem 'rubaidh-google_analytics', :lib => 'rubaidh/google_analytics', :source => 'http://gems.github.com'
   initializer 'google_analytics.rb' do
@@ -364,5 +360,9 @@ git_commit_all 'Added a staging environment with identical contents to productio
   run 'cp config/environments/production.rb config/environments/staging.rb'
 end
 
+# Note: this only works if you're using jqr-github-gem!
+run 'github create-from-local --private'
+
+# TODO: basic app layout
 
 show_post_instructions
