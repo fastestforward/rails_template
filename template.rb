@@ -361,7 +361,7 @@ git_commit_all 'Added a staging environment with identical contents to productio
 end
 
 # Note: this only works if you're using jqr-github-gem!
-run 'github create-from-local --private'
+# run 'github create-from-local --private'
 
 # TODO: basic app layout
 
