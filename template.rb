@@ -4,11 +4,6 @@ def git_commit_all(message, options = '')
   git :commit => %Q{#{options} -a -m #{message.inspect}}
 end
 
-def controller(name, contents)
-  puts "generating controller: #{name.camelcase}Controller."
-  file(File.join('app', 'controllers', "#{name}_controller.rb"), %Q{class #{name.camelcase}Controller < ApplicationController::Base\n#{contents}\nend})
-end
-
 def model(name, contents)
   puts "generating model: #{name.camelcase}."
   file(File.join('app', 'models', "#{name}.rb"), %Q{class #{name.camelcase} < ActiveRecord::Base\n#{contents}\nend})
@@ -24,11 +19,17 @@ def reindent(data, base = 0)
   lines.join("\n")
 end
 
+def replace_class(file, data = nil, &block)
+  data = block.call if !data && block_given?
+  data = reindent(data, 2).chomp
+  gsub_file file, /^(class\s+.*?$).*^(end)/m, "\\1\n#{data}\n\\2" 
+end
+
 def add_to_top_of_class(file, data = nil, &block)
   data = block.call if !data && block_given?
   data = reindent(data, 2).chomp
   match_count = 0
-  gsub_file file, /\b(class\s+.*)/ do |match|
+  gsub_file file, /^(class\s+.*)/ do |match|
     match_count += 1
     if match_count == 1 
       "#{match}\n#{data}\n"
@@ -43,7 +44,7 @@ def add_to_bottom_of_class(file, data = nil, &block)
   data = block.call if !data && block_given?
   data = reindent(data, 2).chomp
   match_count = 0
-  gsub_file file, /^(end)$/i do |match|
+  gsub_file file, /^(end)/ do |match|
     match_count += 1
     if match_count == 1 
       "#{data}\n#{match}"
@@ -169,11 +170,11 @@ git_commit_all 'Added authlogic for application authentication.' do
 
   route("map.resource :#{model_name}_session")
   
-  generate(:session, "#{model_name}_session")
+  generate 'rspec_scaffold', "#{model_name}_session"
+
+  generate(:session, "-f #{model_name}_session")  
   
-  generate 'rspec_controller', "#{model_name}_sessions new destroy"
-  
-  controller "#{model_name}_sessions", reindent(%Q{
+  replace_class "app/controllers/#{model_name}_sessions_controller.rb", reindent(%Q{
     def new
       @#{model_name}_session = #{model_name.camelcase}Session.new
     end
@@ -199,7 +200,7 @@ git_commit_all 'Added authlogic for application authentication.' do
 
   generate('rspec_scaffold', "#{model_name} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
   add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
-  controller "#{model_name.pluralize}", reindent(%Q{
+  replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
     def new
       @#{model_name} = #{model_name.camelcase}.new
     end
