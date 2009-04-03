@@ -99,7 +99,8 @@ end
 git :init
 
 git_commit_all 'Base Rails application.' do
-  run "echo > README"
+  run "rm README"
+  run "echo '= #{application_name.camelize}' > README.rdoc"
   run "rm public/index.html"
   run "rm public/images/rails.png"
   run "rm public/favicon.ico"
