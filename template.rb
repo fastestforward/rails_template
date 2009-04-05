@@ -197,7 +197,7 @@ git_commit_all 'Added authlogic for application authentication.' do
         current_#{model_name}_session.destroy
         flash[:notice] = "Logout successful!"
       end
-      redirect_back_or_default new_user_session_url
+      redirect_back_or_default new_#{model_name}_session_url
     end
   }, 2)    
 
