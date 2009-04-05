@@ -106,7 +106,8 @@ git_commit_all 'Base Rails application.' do
   run "rm public/favicon.ico"
   run "rm public/robots.txt"
 
-  run "touch tmp/.gitignore log/.gitignore vendor/.gitignore"
+  run "touch tmp/.gitignore log/.gitignore vendor/.gitignore public/images/.gitignore"
+  
   file '.gitignore', reindent('
     .DS_Store
     log/*
