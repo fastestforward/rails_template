@@ -172,6 +172,7 @@ git_commit_all 'Added authlogic for application authentication.' do
 
   route("map.resource :#{model_name}_session")
   
+  # FIXME: this is creating resource and resources routes.
   generate 'rspec_scaffold', "#{model_name}_session"
 
   generate(:session, "-f #{model_name}_session")  
