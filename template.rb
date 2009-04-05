@@ -280,6 +280,7 @@ git_commit_all 'Added authlogic for application authentication.' do
     end  
   ", 2)
   
+  # FIXME: kill any additional layouts
   remove_view_specs
 end
 
