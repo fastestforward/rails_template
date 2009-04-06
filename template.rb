@@ -347,7 +347,7 @@ git_commit_all 'Added cucumber for acceptance testing.' do
   generate(:cucumber)
 end
 
-git_commit_all 'Added factory_girl for test object creation' do
+git_commit_all 'Added factory_girl for test object creation.' do
   gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source => 'http://gems.github.com', :env => :test
 end
 
@@ -381,18 +381,19 @@ run 'github create-from-local --private'
 # TODO: email notification
 
 # TODO: email-spec: gem 'bmabey-email_spec', :lib => 'email_spec', :source => 'http://gems.github.com'
+# generate :email_spec
 
-# TODO: time initializers
-# 
-# initializer 'time_formats.rb',
-# %q{
-#    ActiveSupport::CoreExtensions::Time::Conversions::DATE_FORMATS.update({
-#      # 4/5/9
-#      :mdy => proc { |t| t.strftime('%m/%d/%y').gsub /(\b)0/, '\1' },
-#      # Sunday, April 5, 2009
-#      :diary => proc { |t| t.strftime('%A, %B %e, %Y').sub(/  /, ' ') },
-#    })
-# }
+# TODO: email validation
+
+# TODO: time initializers... look for a few other standard ones
+initializer 'time_formats.rb', reindent(%q{
+   ActiveSupport::CoreExtensions::Time::Conversions::DATE_FORMATS.update({
+     # 4/5/9
+     :mdy => proc { |t| t.strftime('%m/%d/%y').gsub /(\b)0/, '\1' },
+     # Sunday, April 5, 2009
+     :diary => proc { |t| t.strftime('%A, %B %e, %Y').sub(/  /, ' ') },
+   })
+})
 
 
 show_post_instructions
