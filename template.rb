@@ -373,15 +373,19 @@ git_commit_all 'Added a staging environment with identical contents to productio
   run 'cp config/environments/production.rb config/environments/staging.rb'
 end
 
+gem 'bmabey-email_spec', :version => '>= 0.1.2', :lib => 'email_spec', :source => 'http://gems.github.com', :env => :test
+generate :email_spec
+# TODO: include some boilerplate stuff?
+
 # Note: this only works if you're using jqr-github-gem!
-run 'github create-from-local --private'
+if yes?('Push to a private github repo?')
+  run 'github create-from-local --private'
+end
 
 # TODO: basic app layout
 
 # TODO: email notification
 
-# TODO: email-spec: gem 'bmabey-email_spec', :lib => 'email_spec', :source => 'http://gems.github.com'
-# generate :email_spec
 
 # TODO: email validation
 
