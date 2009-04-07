@@ -96,6 +96,10 @@ def remove_view_specs
   run 'rm -r spec/views'
 end
 
+def remove_extra_layouts
+  # TODO
+end
+
 git :init
 
 git_commit_all 'Base Rails application.' do
@@ -124,20 +128,30 @@ git_commit_all 'Base Rails application.' do
 end
 
 git_commit_all 'Added populator and faker for seed data generation.' do
+  # TODO: consider something that could validate!
   gem 'populator', :env => :development
   gem 'faker', :env => :development
   
-  # TODO: populate.rake and maybe some contents!
-  # TODO: consider something that could validate!
+  file 'lib/tasks/app.rake', reindent(%q{
+    namespace :app do
+      task :seed => :environment do
+        
+      end
+      
+      task :populate => :seed do
+        
+      end
+    end
+  }) 
 end
 
 git_commit_all 'Added rails-footnotes for easy development inspection and debugging.' do
   gem "josevalim-rails-footnotes",  :lib => "rails-footnotes", :source => "http://gems.github.com", :env => :development
 end
 
-# FIXME: not working properly as a gem, verify 
 git_commit_all 'Added railmail for development email inspection.' do
-  gem 'jqr-railmail', :lib => 'railmail', :source => 'git://github.com/jqr/railmail.git', :env => :development
+  # TODO: get this working as a gem!
+  plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :env => :development
   environment 'ActionMailer::Base.delivery_method = :railmail', :env => :development
 end
 
@@ -172,7 +186,7 @@ end
 
 git_commit_all 'Added authlogic for application authentication.' do
   gem 'authlogic'
-  model_name = 'person'
+  model_name = 'user'
 
   route("map.resource :#{model_name}_session")
   
@@ -206,9 +220,8 @@ git_commit_all 'Added authlogic for application authentication.' do
     end
   }, 2)    
 
-  # FIXME: default to email instead of login
-  # unique and not null
-  generate('rspec_scaffold', "#{model_name} login:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
+  # FIXME: unique and not null on email
+  generate('rspec_scaffold', "#{model_name} email:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
   add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
   replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
     def new
@@ -244,10 +257,9 @@ git_commit_all 'Added authlogic for application authentication.' do
     end
   }, 2)
   
-  # FIXME: current_user is WRONG, should be current_#{model}
   add_to_bottom_of_class File.join('app', 'controllers', 'application_controller.rb'), reindent("
 
-    helper_method :current_user_session, :current_user
+    helper_method :current_#{model_name}_session, :current_#{model_name}
 
     private
   
@@ -289,7 +301,7 @@ git_commit_all 'Added authlogic for application authentication.' do
     end  
   ", 2)
   
-  # FIXME: kill any additional layouts
+  remove_extra_layouts
   remove_view_specs
 end
 
@@ -364,8 +376,13 @@ git_commit_all 'Added Google Analyitcs tracking.' do
 end
 
 git_commit_all 'Generated a StaticsController for static pages.' do
-  # FIXME add route: map.statics ':action/:id', :controller => 'statics'
-  generate 'rspec_controller', 'statics about contact privacy 404 500'
+  route  "map.statics ':action/:id', :controller => 'statics'"
+  generate 'rspec_controller', 'statics'
+  
+  %w(home about contact privacy 404 500).each do |page|
+    file "app/views/statics/#{page}.html.erb", page
+  end
+  route "map.root :controller => 'statics', :action => 'home'"
   remove_view_specs
 end
 
@@ -386,18 +403,18 @@ end
 
 # TODO: email notification
 
-
 # TODO: email validation
 
-# TODO: time initializers... look for a few other standard ones
-initializer 'time_formats.rb', reindent(%q{
-   ActiveSupport::CoreExtensions::Time::Conversions::DATE_FORMATS.update({
-     # 4/5/9
-     :mdy => proc { |t| t.strftime('%m/%d/%y').gsub /(\b)0/, '\1' },
-     # Sunday, April 5, 2009
-     :diary => proc { |t| t.strftime('%A, %B %e, %Y').sub(/  /, ' ') },
-   })
-})
-
+git_commit_all 'Adding some standard time formats' do
+  initializer 'time_formats.rb', reindent(%q{
+    # TODO: time initializers... look for a few other standard ones
+     ActiveSupport::CoreExtensions::Time::Conversions::DATE_FORMATS.update({
+       # 4/5/9
+       :mdy => proc { |t| t.strftime('%m/%d/%y').gsub /(\b)0/, '\1' },
+       # Sunday, April 5, 2009
+       :diary => proc { |t| t.strftime('%A, %B %e, %Y').sub(/  /, ' ') },
+     })
+  })
+end
 
 show_post_instructions
