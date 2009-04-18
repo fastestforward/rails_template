@@ -153,6 +153,7 @@ git_commit_all 'Added railmail for development email inspection.' do
   # TODO: get this working as a gem!
   plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :env => :development
   environment 'ActionMailer::Base.delivery_method = :railmail', :env => :development
+  # FIXME: proper generator for migration, or maybe in bootstrap?
 end
 
 git_commit_all 'Added annotate_models to display database schema in model files.' do
@@ -376,6 +377,7 @@ git_commit_all 'Added Google Analyitcs tracking.' do
 end
 
 git_commit_all 'Generated a StaticsController for static pages.' do
+  # FIXME: add route after all other routes!"
   route  "map.statics ':action/:id', :controller => 'statics'"
   generate 'rspec_controller', 'statics'
   
@@ -404,6 +406,8 @@ end
 # TODO: email notification
 
 # TODO: email validation
+
+# TODO: remove fixtures
 
 git_commit_all 'Adding some standard time formats' do
   initializer 'time_formats.rb', reindent(%q{
