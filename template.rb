@@ -1,10 +1,22 @@
 def git_commit_all(message, options = '')
+  unless options.is_a?(Hash) && options.delete(:initial)
+    if git_dirty?
+      puts "Aborting, we were about to start a commit for #{message.inspect} but there were already some files not checked in!"
+      puts `git status`
+      exit(1)
+    end
+  end
+  
   yield if block_given?
   
   remove_crap
 
   git :add => "."
   git :commit => %Q{#{options} -a -m #{message.inspect}}
+end
+
+def git_dirty?
+  `git status 2> /dev/null | tail -n1`.chomp != "nothing to commit (working directory clean)"
 end
 
 def model(name, contents)
@@ -110,7 +122,7 @@ end
 
 git :init
 
-git_commit_all 'Base Rails application.' do
+git_commit_all 'Base Rails application.', :initial => true do
   run "rm README"
   run "echo '= #{application_name.camelize}' > README.rdoc"
   run "rm public/index.html"
