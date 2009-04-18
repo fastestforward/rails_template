@@ -407,7 +407,6 @@ generate :email_spec
 
 git_commit_all 'Adding some standard time formats' do
   initializer 'time_formats.rb', reindent(%q{
-    # TODO: time initializers... look for a few other standard ones
      ActiveSupport::CoreExtensions::Time::Conversions::DATE_FORMATS.update({
        # 4/5/9
        :mdy => proc { |t| t.strftime('%m/%d/%y').gsub /(\b)0/, '\1' },
