@@ -1,5 +1,8 @@
 def git_commit_all(message, options = '')
   yield if block_given?
+  
+  remove_crap
+
   git :add => "."
   git :commit => %Q{#{options} -a -m #{message.inspect}}
 end
@@ -92,12 +95,13 @@ def show_post_instructions
   end
 end
 
-def remove_view_specs
-  run 'rm -r spec/views'
-end
-
-def remove_extra_layouts
-  # TODO
+def remove_crap
+  run 'rm -r spec/views/'
+  run 'rm -r test/'
+  run 'rm -r spec/fixtures/'
+  Dir.glob(File.join('app', 'views', 'layouts', '*.html.erb')).each do |file|
+    File.unlink(file) unless File.basename(file) == 'application.html.erb'
+  end
 end
 
 git :init
@@ -302,9 +306,6 @@ git_commit_all 'Added authlogic for application authentication.' do
       session[:return_to] = nil
     end  
   ", 2)
-  
-  remove_extra_layouts
-  remove_view_specs
 end
 
 git_commit_all 'Added hoptoad to catch production exceptions.' do
@@ -392,7 +393,6 @@ git_commit_all 'Generated a StaticsController for static pages.' do
     file "app/views/statics/#{page}.html.erb", page
   end
   route "map.root :controller => 'statics', :action => 'home'"
-  remove_view_specs
 end
 
 git_commit_all 'Added a staging environment with identical contents to production.' do
