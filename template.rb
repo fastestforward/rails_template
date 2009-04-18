@@ -95,10 +95,14 @@ def show_post_instructions
   end
 end
 
+def quiet_run(cmd)
+  run "#{cmd} 2> /dev/null", false
+end
+
 def remove_crap
-  run 'rm -r spec/views/'
-  run 'rm -r test/'
-  run 'rm -r spec/fixtures/'
+  quiet_run 'rm -r spec/views/'
+  quiet_run 'rm -r test/'
+  quiet_run 'rm -r spec/fixtures/'
   Dir.glob(File.join('app', 'views', 'layouts', '*.html.erb')).each do |file|
     File.unlink(file) unless File.basename(file) == 'application.html.erb'
   end
