@@ -378,8 +378,8 @@ git_commit_all 'Added Google Analyitcs tracking.' do
 end
 
 git_commit_all 'Generated a StaticsController for static pages.' do
-  # FIXME: add route after all other routes!"
-  route  "map.statics ':action/:id', :controller => 'statics'"
+
+  add_to_bottom_of_class File.join('config', 'routes.rb'), "map.statics ':action/:id', :controller => 'statics'"
   generate 'rspec_controller', 'statics'
   
   %w(home about contact privacy 404 500).each do |page|
