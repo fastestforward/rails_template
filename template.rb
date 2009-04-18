@@ -422,4 +422,14 @@ if yes?('Push to a private github repo?')
   run 'github create-from-local --private'
 end
 
+if yes?('Deploy to Heroku?')
+  run 'heroku create'
+  git_commit_all 'Adding Heroku gem manifest' do 
+    run %q{RAILS_ENV=production ./script/runner 'puts Rails.configuration.gems.collect { |g| command, *options = g.send(:install_command); options.join(" ") }.join("\n")' > .gems}
+  end
+  run 'git push heroku master' 
+  run 'heroku rake db:migrate' 
+  run 'heroku open'
+end
+
 show_post_instructions
