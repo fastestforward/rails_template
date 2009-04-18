@@ -365,6 +365,12 @@ git_commit_all 'Added factory_girl for test object creation.' do
   gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source => 'http://gems.github.com', :env => :test
 end
 
+git_commit_all 'Added email_spec for email testing.' do
+  gem 'bmabey-email_spec', :version => '>= 0.1.3', :lib => 'email_spec', :source => 'http://gems.github.com', :env => :test
+  generate :email_spec
+  # TODO: include some boilerplate stuff?
+end
+
 git_commit_all 'Most recent annotations.' do
   run 'annotate'
 end
@@ -393,9 +399,6 @@ git_commit_all 'Added a staging environment with identical contents to productio
   run 'cp config/environments/production.rb config/environments/staging.rb'
 end
 
-gem 'bmabey-email_spec', :version => '>= 0.1.2', :lib => 'email_spec', :source => 'http://gems.github.com', :env => :test
-generate :email_spec
-# TODO: include some boilerplate stuff?
 
 # TODO: basic app layout
 
