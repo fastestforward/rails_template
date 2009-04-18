@@ -166,6 +166,7 @@ end
 
 git_commit_all 'Added paperclip for handling attachments.' do
   gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
+  gem 'right_aws'
 end
 
 git_commit_all 'Added will_paginate for pagination.' do
