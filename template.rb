@@ -396,11 +396,6 @@ gem 'bmabey-email_spec', :version => '>= 0.1.2', :lib => 'email_spec', :source =
 generate :email_spec
 # TODO: include some boilerplate stuff?
 
-# Note: this only works if you're using jqr-github-gem!
-if yes?('Push to a private github repo?')
-  run 'github create-from-local --private'
-end
-
 # TODO: basic app layout
 
 # TODO: email notification
@@ -419,6 +414,11 @@ git_commit_all 'Adding some standard time formats' do
        :diary => proc { |t| t.strftime('%A, %B %e, %Y').sub(/  /, ' ') },
      })
   })
+end
+
+# Note: this only works if you're using jqr-github-gem!
+if yes?('Push to a private github repo?')
+  run 'github create-from-local --private'
 end
 
 show_post_instructions
