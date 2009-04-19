@@ -370,7 +370,7 @@ git_commit_all 'Added rspec and rspec-rails.' do
 end
 
 git_commit_all 'Added remarkable to spec simple things simply.' do
-  gem 'carlosbrando-remarkable', :lib => 'remarkable', :source => "http://gems.github.com", :env => :test
+  gem 'remarkable', :lib => 'remarkable', :env => :test
 end
 
 git_commit_all 'Added cucumber for acceptance testing.' do
