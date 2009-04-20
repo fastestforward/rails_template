@@ -147,9 +147,11 @@ git_commit_all 'Base Rails application.', :initial => true do
   uncomment_line File.join('app', 'controllers', 'application_controller.rb'), 'filter_parameter_logging :password'
 end
 
-git_commit_all 'Added populator and faker for seed data generation.' do
-  # TODO: consider something that could validate!
-  gem 'populator', :env => :development
+git_commit_all 'Added factory_girl for easy object population.' do
+  gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source => 'http://gems.github.com'
+end
+
+git_commit_all 'Added faker for seed data generation.' do
   gem 'faker', :env => :development
   
   file 'lib/tasks/app.rake', reindent(%q{
@@ -376,10 +378,6 @@ end
 git_commit_all 'Added cucumber for acceptance testing.' do
   gem 'cucumber', :env => :test
   generate(:cucumber)
-end
-
-git_commit_all 'Added factory_girl for test object creation.' do
-  gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source => 'http://gems.github.com', :env => :test
 end
 
 git_commit_all 'Added email_spec for email testing.' do
