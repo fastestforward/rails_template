@@ -172,10 +172,9 @@ git_commit_all 'Added rails-footnotes for easy development inspection and debugg
 end
 
 git_commit_all 'Added railmail for development email inspection.' do
-  # TODO: get this working as a gem!
   plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :env => :development
   environment 'ActionMailer::Base.delivery_method = :railmail', :env => :development
-  # FIXME: proper generator for migration, or maybe in bootstrap?
+  generate 'railmail_migration'
 end
 
 git_commit_all 'Added annotate_models to display database schema in model files.' do
