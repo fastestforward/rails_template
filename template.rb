@@ -396,13 +396,50 @@ git_commit_all 'Added Google Analyitcs tracking.' do
   post_instruction 'Configure Google Analytics: config/initializer/google_analytics.rb'
 end
 
+git_commit_all 'Basic application layout.' do
+  file "app/views/layouts/application.html.erb", reindent(%q{
+    <html>
+      <head>
+        <title><%=h @title %></title>
+      </head>
+      <body>
+        <%= flash_messages %>
+        <%= yield %>
+      </body>
+    </html>
+  })
+  
+  add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%q{
+    def title(text = nil)
+      @title = text
+      content_tag('h1', text)
+    end
+    
+    def flash_messages
+      types = [:error, :notice, :warning]
+      if types.any? { |t| !flash[t].blank? }
+        messages = types.collect do |type|
+          unless flash[type].blank?
+            content_tag(:div, flash[type], :class => type)
+          end
+        end.join
+        
+        content_tag(:div, messages, :id => 'flash')
+      end
+    end
+  })
+end
+
 git_commit_all 'Generated a StaticsController for static pages.' do
 
   add_to_bottom_of_class File.join('config', 'routes.rb'), "map.statics ':action/:id', :controller => 'statics'"
   generate 'rspec_controller', 'statics'
   
   %w(home about contact privacy 404 500).each do |page|
-    file "app/views/statics/#{page}.html.erb", page
+    file "app/views/statics/#{page}.html.erb", reindent(%Q{
+      <%= title #{page.inspect} %>
+      #{page}
+    })
   end
   route "map.root :controller => 'statics', :action => 'home'"
 end
@@ -410,8 +447,6 @@ end
 git_commit_all 'Added a staging environment with identical contents to production.' do
   run 'cp config/environments/production.rb config/environments/staging.rb'
 end
-
-# TODO: basic app layout
 
 # TODO: email notification
 
