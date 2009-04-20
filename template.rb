@@ -382,7 +382,6 @@ end
 git_commit_all 'Added email_spec for email testing.' do
   gem 'bmabey-email_spec', :version => '>= 0.1.3', :lib => 'email_spec', :source => 'http://gems.github.com', :env => :test
   generate :email_spec
-  # TODO: include some boilerplate stuff?
 end
 
 git_commit_all 'Most recent annotations.' do
@@ -412,14 +411,11 @@ git_commit_all 'Added a staging environment with identical contents to productio
   run 'cp config/environments/production.rb config/environments/staging.rb'
 end
 
-
 # TODO: basic app layout
 
 # TODO: email notification
 
 # TODO: email validation
-
-# TODO: remove fixtures
 
 git_commit_all 'Adding some standard time formats' do
   initializer 'time_formats.rb', reindent(%q{
