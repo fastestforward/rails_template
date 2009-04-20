@@ -215,7 +215,7 @@ git_commit_all 'Added authlogic for application authentication.' do
   
   # FIXME: this is creating resource and resources routes.
   # FIXME: should clean up any unecessary actions/views
-  generate 'rspec_scaffold', "#{model_name}_session"
+  generate 'rspec_controller', "#{model_name}_sessions new"
 
   generate(:session, "-f #{model_name}_session")  
   
