@@ -247,6 +247,9 @@ git_commit_all 'Added authlogic for application authentication.' do
   generate('rspec_scaffold', "#{model_name} email:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
   add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
   replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
+    before_filter :require_user, :except => [:new, :create]
+    before_filter :replace_no_user, :only => [:new, :create]
+    
     def new
       @#{model_name} = #{model_name.camelcase}.new
     end
