@@ -40,6 +40,12 @@ def replace_class(file, data = nil, &block)
   gsub_file file, /^(class\s+.*?$).*^(end)/m, "\\1\n#{data}\n\\2" 
 end
 
+def replace_describe(file, data = nil, &block)
+  data = block.call if !data && block_given?
+  data = reindent(data, 2).chomp
+  gsub_file file, /^(describe\s+.*?$).*^(end)/m, "\\1\n#{data}\n\\2" 
+end
+
 def add_to_top_of_class(file, data = nil, &block)
   data = block.call if !data && block_given?
   data = reindent(data, 2).chomp
@@ -207,6 +213,30 @@ git_commit_all 'Setting sessions to expire after 2 weeks.' do
   end
 end
 
+git_commit_all 'Removing default test directory in favor of rspec and cucumber.' do
+  run "rm -rf test/"
+end
+
+git_commit_all 'Added rspec and rspec-rails.' do
+  gem 'rspec', :lib => 'spec', :env => :test
+  gem 'rspec-rails', :lib => 'spec/rails', :env => :test
+  generate(:rspec)
+end
+
+git_commit_all 'Added remarkable to spec simple things simply.' do
+  gem 'remarkable', :lib => 'remarkable', :env => :test
+end
+
+git_commit_all 'Added cucumber for acceptance testing.' do
+  gem 'cucumber', :env => :test
+  generate(:cucumber)
+end
+
+git_commit_all 'Added email_spec for email testing.' do
+  gem 'bmabey-email_spec', :version => '>= 0.1.3', :lib => 'email_spec', :source => 'http://gems.github.com', :env => :test
+  generate :email_spec
+end
+
 git_commit_all 'Added authlogic for application authentication.' do
   gem 'authlogic'
   model_name = 'user'
@@ -247,8 +277,9 @@ git_commit_all 'Added authlogic for application authentication.' do
   generate('rspec_scaffold', "#{model_name} email:string crypted_password:string password_salt:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
   add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
   replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
-    before_filter :require_user, :except => [:new, :create]
+    before_filter :require_user, :except => [:new, :create, :show]
     before_filter :require_no_user, :only => [:new, :create]
+    before_filter :require_same_user, :only => [:edit, :update]
 
     def new
       @#{model_name} = #{model_name.camelcase}.new
@@ -265,7 +296,7 @@ git_commit_all 'Added authlogic for application authentication.' do
     end
 
     def show
-      @#{model_name} = current_#{model_name}
+      @#{model_name} = #{model_name.camelize}.find(params[:id])
     end
 
     def edit
@@ -280,6 +311,13 @@ git_commit_all 'Added authlogic for application authentication.' do
       else
         render :action => :edit
       end
+    end
+    
+    private
+    
+    def require_same_user
+      # TODO
+      # current_user && current_user.id == params[:id]
     end
   }, 2)
   
@@ -374,6 +412,173 @@ git_commit_all 'Added authlogic for application authentication.' do
 
     <%= link_to 'Back', #{model_name.pluralize}_path %>
   })
+  
+  add_to_bottom_of_class 'spec/spec_helper.rb', reindent(%Q{
+    def login_as(user)
+      controller.stub!(:current_user).and_return(user)
+    end
+  })
+  
+  # TODO map.resources :users => map.resources :users, :except => :destroy
+  
+  replace_describe 'spec/models/user_spec.rb', "\n"
+  
+  file 'spec/controllers/users_controller_spec.rb', reindent(%Q{
+    require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+
+    describe UsersController do
+
+      def mock_user(stubs={})
+        @mock_user ||= mock_model(User, stubs)
+      end
+
+      describe "GET show" do
+        it "assigns the requested user as @user" do
+          User.should_receive(:find).with("37").and_return(mock_user)
+          get :show, :id => "37"
+          assigns[:user].should equal(mock_user)
+        end
+      end
+
+      describe "GET new" do
+        describe "while logged out" do
+          it "assigns a new user as @user" do
+            User.should_receive(:new).and_return(mock_user)
+            get :new
+            assigns[:user].should equal(mock_user)
+          end
+        end
+
+        describe "while logged in" do
+          before(:each) do
+            login_as mock_user
+          end
+
+          it "should redirect to root" do
+            get :new
+            response.should redirect_to(root_path)
+          end
+        end
+      end
+
+      describe "GET edit" do
+        describe "while logged out" do
+          it "should redirect the user to login" do
+            get :edit, :id => "37"
+            response.should redirect_to(new_user_session_path)
+          end
+        end
+
+        describe "while logged in" do
+          before(:each) do
+            login_as mock_user
+          end
+
+          it "assigns the current user as @user" do
+            get :edit
+            assigns[:user].should equal(mock_user)
+          end
+        end
+      end
+
+      describe "POST create" do
+        describe "while logged out" do
+          describe "with valid params" do
+            it "assigns a newly created user as @user" do
+              attribites = {
+                "email" => 'test@example.com',
+                "password" => 'testing',
+                "password_confirmation" => 'testing',
+              }
+              User.should_receive(:new).with(attribites ).and_return(mock_user(:save => true))
+              post :create, :user => attribites
+              assigns[:user].should equal(mock_user)
+            end
+
+            it "redirects to the created user" do
+              User.stub!(:new).and_return(mock_user(:save => true))
+              post :create, :user => {}
+              response.should redirect_to(user_url(mock_user))
+            end
+          end
+
+          describe "with invalid params" do
+            it "assigns a newly created but unsaved user as @user" do
+              User.stub!(:new).with({'these' => 'params'}).and_return(mock_user(:save => false))
+              post :create, :user => {:these => 'params'}
+              assigns[:user].should equal(mock_user)
+            end
+
+            it "re-renders the 'new' template" do
+              User.stub!(:new).and_return(mock_user(:save => false))
+              post :create, :user => {}
+              response.should render_template('new')
+            end
+          end
+        end
+
+        describe "while logged in" do
+          before(:each) do
+            login_as mock_user
+          end
+
+          it "should redirect to root" do
+            post :create, :user => {}
+            response.should redirect_to(root_path)
+          end
+        end
+      end
+
+      describe "PUT udpate" do
+        describe "while logged out" do
+          it "should redirect the user to login" do
+            put :update, :id => "1"
+            response.should redirect_to(new_user_session_path)
+          end
+        end
+
+        describe "while logged in" do
+          before(:each) do
+            login_as(mock_user)
+            mock_user.stub!(:update_attributes).and_return(true)
+          end
+
+          it "updates the current user" do
+            mock_user.should_receive(:update_attributes).with({'email' => 'jerk@example.com'})
+            put :update, :id => "37", :user => {:email => 'jerk@example.com'}
+          end
+
+          it "assigns the current user as @user" do
+            put :update, :id => "1"
+            assigns[:user].should equal(mock_user)
+          end
+
+          describe "with valid params" do
+            before(:each) do
+              mock_user.stub!(:update_attributes).and_return(true)
+            end
+
+            it "redirects to the user" do
+              put :update, :id => "1"
+              response.should redirect_to(user_url(mock_user))
+            end
+          end
+
+          describe "with invalid params" do
+            before(:each) do
+              mock_user.stub!(:update_attributes).and_return(false)
+            end
+
+            it "re-renders the 'edit' template" do
+              put :update, :id => "1"
+              response.should render_template('edit')
+            end
+          end
+        end
+      end
+
+    end
+  })
 end
 
 git_commit_all 'Added hoptoad to catch production exceptions.' do
@@ -409,30 +614,6 @@ end
 git_commit_all 'Most recent schema.' do
   rake "db:migrate"
   rake "db:test:clone"
-end
-
-git_commit_all 'Removing default test directory in favor of rspec and cucumber.' do
-  run "rm -rf test/"
-end
-
-git_commit_all 'Added rspec and rspec-rails.' do
-  gem 'rspec', :lib => 'spec', :env => :test
-  gem 'rspec-rails', :lib => 'spec/rails', :env => :test
-  generate(:rspec)
-end
-
-git_commit_all 'Added remarkable to spec simple things simply.' do
-  gem 'remarkable', :lib => 'remarkable', :env => :test
-end
-
-git_commit_all 'Added cucumber for acceptance testing.' do
-  gem 'cucumber', :env => :test
-  generate(:cucumber)
-end
-
-git_commit_all 'Added email_spec for email testing.' do
-  gem 'bmabey-email_spec', :version => '>= 0.1.3', :lib => 'email_spec', :source => 'http://gems.github.com', :env => :test
-  generate :email_spec
 end
 
 git_commit_all 'Most recent annotations.' do
