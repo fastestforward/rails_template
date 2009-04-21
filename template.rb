@@ -441,7 +441,6 @@ git_commit_all 'Generated a StaticsController for static pages.' do
   %w(home about contact privacy 404 500).each do |page|
     file "app/views/statics/#{page}.html.erb", reindent(%Q{
       <%= title #{page.inspect} %>
-      #{page}
     })
   end
   route "map.root :controller => 'statics', :action => 'home'"
