@@ -249,7 +249,7 @@ git_commit_all 'Added authlogic for application authentication.' do
   replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
     before_filter :require_user, :except => [:new, :create]
     before_filter :require_no_user, :only => [:new, :create]
-    
+
     def new
       @#{model_name} = #{model_name.camelcase}.new
     end
@@ -326,6 +326,54 @@ git_commit_all 'Added authlogic for application authentication.' do
       session[:return_to] = nil
     end  
   ", 2)
+
+  file 'app/views/user_sessions/new.html.erb', reindent(%Q{
+    <h1>New User Session</h1>
+
+    <% form_for(@#{model_name}_session, :url => user_session_path) do |f| %>
+      <%= f.error_messages %>
+
+      <p>
+        <%= f.label :email %><br />
+        <%= f.text_field :email %>
+      </p>
+      <p>
+        <%= f.label :password %><br />
+        <%= f.password_field :password %>
+      </p>
+      <p>
+        <%= f.submit 'Create' %>
+      </p>
+    <% end %>
+
+    <%= link_to 'Back', #{model_name.pluralize}_path %>
+  })
+  
+  file 'app/views/users/new.html.erb', reindent(%Q{
+    <h1>New user</h1>
+
+    <% form_for(@#{model_name}) do |f| %>
+      <%= f.error_messages %>
+
+      <p>
+        <%= f.label :email %><br />
+        <%= f.text_field :email %>
+      </p>
+      <p>
+        <%= f.label :password %><br />
+        <%= f.password_field :password %>
+      </p>
+      <p>
+        <%= f.label :password_confirmation %><br />
+        <%= f.password_field :password_confirmation %>
+      </p>
+      <p>
+        <%= f.submit 'Create' %>
+      </p>
+    <% end %>
+
+    <%= link_to 'Back', #{model_name.pluralize}_path %>
+  })
 end
 
 git_commit_all 'Added hoptoad to catch production exceptions.' do
@@ -406,6 +454,12 @@ git_commit_all 'Basic application layout.' do
         <title><%=h @title %></title>
       </head>
       <body>
+        <% if current_user %>
+          <%= link_to 'Logout', user_session_path, :method => :delete %>
+        <% else %> 
+          <%= link_to 'Login', new_user_session_path %>
+          <%= link_to 'Register', new_user_path %>
+        <% end %>
         <%= flash_messages %>
         <%= yield %>
       </body>
