@@ -707,8 +707,9 @@ end
 
 if yes?('Deploy to Heroku?')
   run 'heroku create'
-  git_commit_all 'Adding Heroku gem manifest' do 
-    run %q{RAILS_ENV=production ./script/runner 'puts Rails.configuration.gems.collect { |g| command, *options = g.send(:install_command); options.join(" ") }.join("\n")' > .gems}
+  git_commit_all 'Added Heroku gem manifest.' do 
+    run 'curl http://gist.github.com/101101.txt > lib/tasks/heroku.rake'
+    rake 'heroku:gems'
   end
   run 'git push heroku master' 
   run 'heroku rake db:migrate' 
