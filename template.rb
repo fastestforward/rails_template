@@ -668,17 +668,14 @@ git_commit_all 'Basic application layout.' do
   })
 end
 
-git_commit_all 'Generated a StaticsController for static pages.' do
-
-  add_to_bottom_of_class File.join('config', 'routes.rb'), "map.statics ':action/:id', :controller => 'statics'"
-  generate 'rspec_controller', 'statics'
+git_commit_all 'Added static_pages for handling static pages and error messages.' do
+  plugin 'static_pages', :git => 'git://github.com/jqr/static_pages.git'
   
-  %w(home about contact privacy 404 500).each do |page|
-    file "app/views/statics/#{page}.html.erb", reindent(%Q{
+  %w(index about contact privacy 404 422 500).each do |page|
+    file "app/views/static_pages/#{page}.html.erb", reindent(%Q{
       <%= title #{page.inspect} %>
     })
   end
-  route "map.root :controller => 'statics', :action => 'home'"
 end
 
 git_commit_all 'Added a staging environment with identical contents to production.' do
