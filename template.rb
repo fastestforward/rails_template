@@ -629,6 +629,7 @@ git_commit_all 'Added Google Analyitcs tracking.' do
 end
 
 git_commit_all 'Basic application layout.' do
+  # FIXME: not indented properly
   file "app/views/layouts/application.html.erb", reindent(%q{
     <html>
       <head>
