@@ -697,7 +697,6 @@ git_commit_all 'Adding some standard time formats' do
   })
 end
 
-# Note: this only works if you're using jqr-github-gem!
 if yes?('Push to a private github repo?')
   run 'github create-from-local --private'
 end
