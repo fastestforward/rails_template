@@ -702,7 +702,8 @@ if yes?('Push to a private github repo?')
 end
 
 if yes?('Deploy to Heroku?')
-  run "heroku create #{application_name}"
+  heroku_application_name = application_name.gsub(/[^A-Z0-9-]/i, '-')
+  run "heroku create #{heroku_application_name}"
   git_commit_all 'Added Heroku gem manifest.' do 
     run 'curl http://gist.github.com/101101.txt > lib/tasks/heroku.rake'
     rake 'heroku:gems'
