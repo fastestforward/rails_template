@@ -679,6 +679,8 @@ git_commit_all 'Added static_pages for handling static pages and error messages.
   end
 end
 
+# TODO: formtastic
+
 git_commit_all 'Added a staging environment with identical contents to production.' do
   run 'cp config/environments/production.rb config/environments/staging.rb'
 end
@@ -715,3 +717,5 @@ if yes?('Deploy to Heroku?')
 end
 
 show_post_instructions
+
+# TODO: application css
