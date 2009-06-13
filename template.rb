@@ -26,7 +26,7 @@ end
 
 def reindent(data, base = 0)
   lines = data.split("\n")
-  smallest_indentation = lines.collect { |l| l =~ /\w/ }.compact.min
+  smallest_indentation = lines.collect { |l| l =~ /\S/ }.compact.min
 
   lines.each do |line|
     line.gsub!(/^\s{#{smallest_indentation}}/, ' ' * base)
