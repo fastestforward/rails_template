@@ -134,7 +134,6 @@ git_commit_all 'Base Rails application.', :initial => true do
   run "rm public/index.html"
   run "rm public/images/rails.png"
   run "rm public/favicon.ico"
-  run "rm public/robots.txt"
 
   run "touch tmp/.gitignore log/.gitignore vendor/.gitignore public/images/.gitignore"
   
