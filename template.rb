@@ -367,49 +367,19 @@ git_commit_all 'Added authlogic for application authentication.' do
   file 'app/views/user_sessions/new.html.erb', reindent(%Q{
     <h1>New User Session</h1>
 
-    <% form_for(@#{model_name}_session, :url => user_session_path) do |f| %>
-      <%= f.error_messages %>
-
-      <p>
-        <%= f.label :email %><br />
-        <%= f.text_field :email %>
-      </p>
-      <p>
-        <%= f.label :password %><br />
-        <%= f.password_field :password %>
-      </p>
-      <p>
-        <%= f.submit 'Create' %>
-      </p>
+    <% semantic_form_for(@#{model_name}_session, :url => user_session_path) do |f| %>
+      <%= f.inputs :email, :password %>
+      <%= f.buttons %>
     <% end %>
-
-    <%= link_to 'Back', #{model_name.pluralize}_path %>
   })
   
   file 'app/views/users/new.html.erb', reindent(%Q{
     <h1>New user</h1>
 
-    <% form_for(@#{model_name}) do |f| %>
-      <%= f.error_messages %>
-
-      <p>
-        <%= f.label :email %><br />
-        <%= f.text_field :email %>
-      </p>
-      <p>
-        <%= f.label :password %><br />
-        <%= f.password_field :password %>
-      </p>
-      <p>
-        <%= f.label :password_confirmation %><br />
-        <%= f.password_field :password_confirmation %>
-      </p>
-      <p>
-        <%= f.submit 'Create' %>
-      </p>
+    <% semantic_form_for(@#{model_name}) do |f| %>
+      <%= f.inputs :email, :password, :password_confirmation %>
+      <%= f.buttons %>
     <% end %>
-
-    <%= link_to 'Back', #{model_name.pluralize}_path %>
   })
   
   add_to_bottom_of_class 'spec/spec_helper.rb', reindent(%Q{
@@ -627,12 +597,29 @@ git_commit_all 'Added Google Analyitcs tracking.' do
   post_instruction 'Configure Google Analytics: config/initializer/google_analytics.rb'
 end
 
+
+git_commit_all 'Added formtastic for standard forms' do
+  gem 'justinfrench-formtastic', :lib => 'formtastic', :source => 'http://gems.github.com'
+  generate :formtastic_stylesheets
+end
+
+# git_commit_all 'Adding blueprint for default style' do
+#   %w(grid.css grid.png ie.css print.css reset.css typography.css forms.css).each do |file|
+#     run "curl http://github.com/joshuaclayton/blueprint-css/raw/master/blueprint/src/#{file} > public/stylesheets/#{file}"
+#   end
+# end
+
 git_commit_all 'Basic application layout.' do
-  # FIXME: not indented properly
   file "app/views/layouts/application.html.erb", reindent(%q{
     <html>
       <head>
         <title><%=h @title %></title>
+        <!-- reset ie grid typography -->
+        <%= stylesheet_link_tag %w(formtastic formtastic_changes application) %>
+        <%= stylesheet_link_tag 'print', :media => 'print' %>
+        <!--[if lt IE 8]>
+          <%= stylesheet_link_tag 'ie' %>
+        <![endif]-->
       </head>
       <body>
         <% if current_user %>
@@ -641,11 +628,25 @@ git_commit_all 'Basic application layout.' do
           <%= link_to 'Login', new_user_session_path %>
           <%= link_to 'Register', new_user_path %>
         <% end %>
+
         <%= flash_messages %>
+
         <%= yield %>
       </body>
     </html>
   })
+  
+  file "public/stylesheets/formtastic_changes.css", reindent(%Q{
+    form.formtastic fieldset ol li {
+      display: block;
+    }
+    form.formtastic fieldset {
+      display: block;
+    }
+    form.formtastic fieldset ol li label {
+      text-align: right;
+    }
+  }, 0)
   
   add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%q{
     def title(text = nil)
@@ -677,8 +678,6 @@ git_commit_all 'Added static_pages for handling static pages and error messages.
     })
   end
 end
-
-# TODO: formtastic
 
 git_commit_all 'Added a staging environment with identical contents to production.' do
   run 'cp config/environments/production.rb config/environments/staging.rb'
@@ -716,5 +715,3 @@ if yes?('Deploy to Heroku?')
 end
 
 show_post_instructions
-
-# TODO: application css
