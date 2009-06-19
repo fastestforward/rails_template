@@ -232,6 +232,7 @@ git_commit_all 'Added cucumber for acceptance testing.' do
 end
 
 git_commit_all 'Added email_spec for email testing.' do
+  # TODO:   require 'email_spec/cucumber' after the world require
   gem 'bmabey-email_spec', :version => '>= 0.1.3', :lib => 'email_spec', :source => 'http://gems.github.com', :env => :test
   generate :email_spec
 end
@@ -613,7 +614,7 @@ git_commit_all 'Basic application layout.' do
   file "app/views/layouts/application.html.erb", reindent(%q{
     <html>
       <head>
-        <title><%=h @title %></title>
+        <title><%= strip_tags(page_title) %></title>
         <!-- reset ie grid typography -->
         <%= stylesheet_link_tag %w(formtastic formtastic_changes application) %>
         <%= stylesheet_link_tag 'print', :media => 'print' %>
@@ -649,6 +650,14 @@ git_commit_all 'Basic application layout.' do
   }, 0)
   
   add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%q{
+    def page_title
+      [@title, site_title].compact.join(' // ')
+    end
+    
+    def site_title
+      'New App'
+    end
+    
     def title(text = nil)
       @title = text
       content_tag('h1', text)
