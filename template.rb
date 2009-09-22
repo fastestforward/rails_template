@@ -269,7 +269,8 @@ git_commit_all 'Added authlogic for application authentication.' do
         current_#{model_name}_session.destroy
         flash[:notice] = "Logout successful!"
       end
-      redirect_back_or_default new_#{model_name}_session_url
+      
+      redirect_to root_path
     end
   }, 2)    
 
@@ -637,6 +638,8 @@ git_commit_all 'Basic application layout.' do
     </html>
   })
   
+  # TODO: application stylesheet
+  
   file "public/stylesheets/formtastic_changes.css", reindent(%Q{
     form.formtastic fieldset ol li {
       display: block;
@@ -648,6 +651,8 @@ git_commit_all 'Basic application layout.' do
       text-align: right;
     }
   }, 0)
+  
+  # TODO: style flash messages
   
   add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%q{
     def page_title
@@ -724,3 +729,5 @@ if yes?('Deploy to Heroku?')
 end
 
 show_post_instructions
+
+# TODO: forgotten password
