@@ -343,7 +343,6 @@ git_commit_all 'Added authlogic for application authentication.' do
         store_location
         flash[:notice] = \"You must be logged in to access this page\"
         redirect_to new_#{model_name}_session_url
-        return false
       end
     end
 
@@ -352,7 +351,6 @@ git_commit_all 'Added authlogic for application authentication.' do
         store_location
         flash[:notice] = \"You must be logged out to access this page\"
         redirect_to root_path
-        return false
       end
     end
 
