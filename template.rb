@@ -153,7 +153,7 @@ git_commit_all 'Base Rails application.', :initial => true do
 end
 
 git_commit_all 'Added factory_girl for easy object population.' do
-  gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source => 'http://gems.github.com'
+  gem 'factory_girl'
 end
 
 git_commit_all 'Added faker for seed data generation.' do
@@ -173,7 +173,7 @@ git_commit_all 'Added faker for seed data generation.' do
 end
 
 git_commit_all 'Added rails-footnotes for easy development inspection and debugging.' do
-  gem "josevalim-rails-footnotes",  :lib => "rails-footnotes", :source => "http://gems.github.com", :env => :development
+  gem "rails-footnotes", :env => :development
 end
 
 git_commit_all 'Added railmail for development email inspection.' do
@@ -183,7 +183,7 @@ git_commit_all 'Added railmail for development email inspection.' do
 end
 
 git_commit_all 'Added annotate_models to display database schema in model files.' do
-  gem 'annotate-models', :lib => 'annotate_models', :env => :development
+  gem 'annotate', :env => :development
 end
 
 git_commit_all 'Added limerick_rake for handy rake tasks.' do
@@ -191,12 +191,12 @@ git_commit_all 'Added limerick_rake for handy rake tasks.' do
 end
 
 git_commit_all 'Added paperclip for handling attachments.' do
-  gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
-  gem 'right_aws'
+  gem 'paperclip'
+  gem 'right_aws' # required by paperclip
 end
 
 git_commit_all 'Added will_paginate for pagination.' do
-  gem 'mislav-will_paginate', :lib => 'will_paginate', :source => 'http://gems.github.com'
+  gem 'will_paginate'
 end
 
 git_commit_all 'Added newrelic_rpm for performance inspection in development and production.' do
@@ -233,7 +233,7 @@ end
 
 git_commit_all 'Added email_spec for email testing.' do
   # TODO:   require 'email_spec/cucumber' after the world require
-  gem 'bmabey-email_spec', :version => '>= 0.1.3', :lib => 'email_spec', :source => 'http://gems.github.com', :env => :test
+  gem 'bmabey-email_spec', :env => :test
   generate :email_spec
 end
 
@@ -568,10 +568,10 @@ git_commit_all 'Added asset-version for cached asset expiry.' do
   plugin 'kristopher-asset-version', :git => 'git://github.com/kristopher/asset-version'
 end
 
-git_commit_all 'Basic capistrano setup.' do
-  capify!
-  post_instruction 'Configure Capistrano: config/deploy.rb'
-end
+# git_commit_all 'Basic capistrano setup.' do
+#   capify!
+#   post_instruction 'Configure Capistrano: config/deploy.rb'
+# end
 
 git_commit_all 'Added concerns directory to store reusable modules.' do
   original_load_paths = '# config.load_paths += %W( #{RAILS_ROOT}/extras )'
@@ -590,7 +590,7 @@ git_commit_all 'Most recent annotations.' do
 end
 
 git_commit_all 'Added Google Analyitcs tracking.' do
-  gem 'rubaidh-google_analytics', :lib => 'rubaidh/google_analytics', :source => 'http://gems.github.com'
+  gem 'google_analytics'
   initializer 'google_analytics.rb' do
     "Rubaidh::GoogleAnalytics.tracker_id = 'fake_tracker_id'"
   end
@@ -599,7 +599,7 @@ end
 
 
 git_commit_all 'Added formtastic for standard forms' do
-  gem 'justinfrench-formtastic', :lib => 'formtastic', :source => 'http://gems.github.com'
+  gem 'formtastic'
   generate :formtastic_stylesheets
 end
 
@@ -717,8 +717,10 @@ end
 if yes?('Deploy to Heroku?')
   heroku_application_name = application_name.gsub(/[^A-Z0-9-]/i, '-')
   run "heroku create #{heroku_application_name}"
+  git_commit_all 'Added heroku_san for easily deploying to Heroku' do
+    plugin 'heroku_san', :git => 'git://github.com/fastestforward/heroku_san.git'
+  end
   git_commit_all 'Added Heroku gem manifest.' do 
-    run 'curl http://gist.github.com/101101.txt > lib/tasks/heroku.rake'
     rake 'heroku:gems'
   end
   run 'git push heroku master' 
