@@ -143,6 +143,7 @@ git_commit_all 'Base Rails application.', :initial => true do
     tmp/*
     config/database.yml
     db/*.sqlite*
+    db/*.sql
   ')
   
   [nil, :development, :test, :production].each do |env|
@@ -182,7 +183,7 @@ git_commit_all 'Added railmail for development email inspection.' do
   generate 'railmail_migration'
 end
 
-git_commit_all 'Added annotate_models to display database schema in model files.' do
+git_commit_all 'Added annotate to display database schema in model files.' do
   gem 'annotate', :env => :development
 end
 
@@ -233,7 +234,7 @@ end
 
 git_commit_all 'Added email_spec for email testing.' do
   # TODO:   require 'email_spec/cucumber' after the world require
-  gem 'bmabey-email_spec', :env => :test
+  gem 'email_spec', :env => :test
   generate :email_spec
 end
 
@@ -558,8 +559,6 @@ git_commit_all 'Added hoptoad to catch production exceptions.' do
   ')
 
   plugin 'hoptoad_notifier', :git => "git://github.com/thoughtbot/hoptoad_notifier.git"
-  add_to_top_of_class File.join('app', 'controllers', 'application_controller.rb'), 
-    "include HoptoadNotifier::Catcher"
 
   post_instruction 'Configure Hoptoad: config/initializer/hoptoad.rb'
 end
