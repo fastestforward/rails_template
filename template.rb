@@ -572,6 +572,18 @@ end
 #   post_instruction 'Configure Capistrano: config/deploy.rb'
 # end
 
+git_commit_all 'Added delayed_job for background tasks' do
+  gem 'delayed_job'
+
+  file 'lib/tasks/delayed_job.rake', reindent(%q{
+    begin
+      require 'delayed/tasks'
+    rescue LoadError
+      STDERR.puts "Run `rake gems:install` to install delayed_job"
+    end
+  })
+end
+
 git_commit_all 'Added concerns directory to store reusable modules.' do
   original_load_paths = '# config.load_paths += %W( #{RAILS_ROOT}/extras )'
   new_load_paths = 'config.load_paths += %W( #{RAILS_ROOT}/app/concerns )'
@@ -730,5 +742,3 @@ end
 show_post_instructions
 
 # TODO: forgotten password
-
-# TODO: delayed_job
