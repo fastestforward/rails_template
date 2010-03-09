@@ -558,7 +558,7 @@ git_commit_all 'Added hoptoad to catch production exceptions.' do
     end
   ')
 
-  plugin 'hoptoad_notifier', :git => "git://github.com/thoughtbot/hoptoad_notifier.git"
+  gem 'hoptoad_notifier'
 
   post_instruction 'Configure Hoptoad: config/initializer/hoptoad.rb'
 end
