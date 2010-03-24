@@ -626,6 +626,8 @@ git_commit_all 'Basic application layout.' do
     <html>
       <head>
         <title><%= strip_tags(page_title) %></title>
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/reset/reset-min.css">
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/fonts/fonts-min.css">
         <!-- reset ie grid typography -->
         <%= stylesheet_link_tag %w(formtastic formtastic_changes application) %>
         <%= stylesheet_link_tag 'print', :media => 'print' %>
