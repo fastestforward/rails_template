@@ -163,7 +163,7 @@ git_commit_all 'Added faker for seed data generation.' do
   file 'lib/tasks/app.rake', reindent(%q{
     namespace :app do
       task :seed => :environment do
-        
+
       end
       
       task :populate => :seed do
@@ -674,7 +674,7 @@ git_commit_all 'Basic application layout.' do
   
   # TODO: style flash messages
   
-  add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%q{
+  add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%Q{
     def page_title
       [@title, site_title].compact.join(' // ')
     end
