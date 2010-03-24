@@ -669,7 +669,7 @@ git_commit_all 'Basic application layout.' do
     end
     
     def site_title
-      'New App'
+      '#{application_name.titlecase}'
     end
     
     def title(text = nil)
