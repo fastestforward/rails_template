@@ -366,20 +366,24 @@ git_commit_all 'Added authlogic for application authentication.' do
   ", 2)
 
   file 'app/views/user_sessions/new.html.erb', reindent(%Q{
-    <h1>New User Session</h1>
+    <%= title 'Login' %>
 
     <% semantic_form_for(@#{model_name}_session, :url => user_session_path) do |f| %>
       <%= f.inputs :email, :password %>
-      <%= f.buttons %>
+      <% f.buttons do %>
+        <%= f.commit_button 'Login' %>
+      <% end %>
     <% end %>
   })
   
   file 'app/views/users/new.html.erb', reindent(%Q{
-    <h1>New user</h1>
+    <%= title 'Register' %>
 
     <% semantic_form_for(@#{model_name}) do |f| %>
       <%= f.inputs :email, :password, :password_confirmation %>
-      <%= f.buttons %>
+      <% f.buttons do %>
+        <%= f.commit_button 'Register' %>
+      <% end %>
     <% end %>
   })
   
