@@ -319,7 +319,7 @@ git_commit_all 'Added authlogic for application authentication.' do
     
     def require_same_user
       # TODO
-      # current_user && current_user.id == params[:id]
+      # current_user && current_user.id == params[:id].to_i
     end
   }, 2)
   
