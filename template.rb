@@ -622,6 +622,7 @@ end
 
 git_commit_all 'Basic application layout.' do
   file "app/views/layouts/application.html.erb", reindent(%q{
+    <DOCTYPE html>
     <html>
       <head>
         <title><%= strip_tags(page_title) %></title>
