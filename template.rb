@@ -635,6 +635,7 @@ git_commit_all 'Basic application layout.' do
           <%= stylesheet_link_tag 'ie' %>
         <![endif]-->
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+        <%= yield :head %>
       </head>
       <body>
         <% if current_user %>
@@ -647,6 +648,8 @@ git_commit_all 'Basic application layout.' do
         <%= flash_messages %>
 
         <%= yield %>
+        
+        <%= yield :foot %>
       </body>
     </html>
   })
