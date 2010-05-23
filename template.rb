@@ -137,13 +137,9 @@ git_commit_all 'Base Rails application.', :initial => true do
 
   run "touch tmp/.gitkeep log/.gitkeep vendor/.gitkeep public/images/.gitkeep"
   
-  file '.gitignore', reindent('
+  append_file '.gitignore', reindent('
     .DS_Store
-    log/*
-    tmp/*
     config/database.yml
-    db/*.sqlite*
-    db/*.sql
   ')
   
   [nil, :development, :test, :production].each do |env|
