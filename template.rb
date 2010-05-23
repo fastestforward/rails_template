@@ -135,7 +135,7 @@ git_commit_all 'Base Rails application.', :initial => true do
   run "rm public/images/rails.png"
   run "rm public/favicon.ico"
 
-  run "touch tmp/.gitignore log/.gitignore vendor/.gitignore public/images/.gitignore"
+  run "touch tmp/.gitkeep log/.gitkeep vendor/.gitkeep public/images/.gitkeep"
   
   file '.gitignore', reindent('
     .DS_Store
