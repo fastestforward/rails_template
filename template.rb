@@ -147,9 +147,9 @@ git_commit_all 'Base Rails application.', :initial => true do
   uncomment_line File.join('app', 'controllers', 'application_controller.rb'), 'filter_parameter_logging :password'
 end
 
-git_commit_all 'Added factory_girl for easy object population.' do
-  gem 'factory_girl'
-end
+# git_commit_all 'Added factory_girl for easy object population.' do
+#   gem 'factory_girl'
+# end
 
 git_commit_all 'Added faker for seed data generation.' do
   gem 'faker', :group => :development
@@ -167,9 +167,9 @@ git_commit_all 'Added faker for seed data generation.' do
   }) 
 end
 
-git_commit_all 'Added rails-footnotes for easy development inspection and debugging.' do
-  gem "rails-footnotes", :group => :development
-end
+# git_commit_all 'Added rails-footnotes for easy development inspection and debugging.' do
+#   gem "rails-footnotes", :group => :development
+# end
 
 git_commit_all 'Added railmail for development email inspection.' do
   plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :group => :development
