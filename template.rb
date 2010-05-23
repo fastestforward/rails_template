@@ -158,7 +158,7 @@ git_commit_all 'Added factory_girl for easy object population.' do
 end
 
 git_commit_all 'Added faker for seed data generation.' do
-  gem 'faker', :env => :development
+  gem 'faker', :group => :development
   
   file 'lib/tasks/app.rake', reindent(%q{
     namespace :app do
@@ -174,17 +174,17 @@ git_commit_all 'Added faker for seed data generation.' do
 end
 
 git_commit_all 'Added rails-footnotes for easy development inspection and debugging.' do
-  gem "rails-footnotes", :env => :development
+  gem "rails-footnotes", :group => :development
 end
 
 git_commit_all 'Added railmail for development email inspection.' do
-  plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :env => :development
-  environment 'ActionMailer::Base.delivery_method = :railmail', :env => :development
+  plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :group => :development
+  environment 'ActionMailer::Base.delivery_method = :railmail', :group => :development
   generate 'railmail_migration'
 end
 
 git_commit_all 'Added annotate to display database schema in model files.' do
-  gem 'annotate', :env => :development
+  gem 'annotate', :group => :development
 end
 
 git_commit_all 'Added limerick_rake for handy rake tasks.' do
@@ -218,23 +218,23 @@ git_commit_all 'Removing default test directory in favor of rspec and cucumber.'
 end
 
 git_commit_all 'Added rspec and rspec-rails.' do
-  gem 'rspec', :lib => 'spec', :env => :test
-  gem 'rspec-rails', :lib => 'spec/rails', :env => :test
+  gem 'rspec', :lib => 'spec', :group => :test
+  gem 'rspec-rails', :lib => 'spec/rails', :group => :test
   generate(:rspec)
 end
 
 git_commit_all 'Added remarkable to spec simple things simply.' do
-  gem 'remarkable', :lib => 'remarkable', :env => :test
+  gem 'remarkable', :lib => 'remarkable', :group => :test
 end
 
 git_commit_all 'Added cucumber for acceptance testing.' do
-  gem 'cucumber', :env => :test
+  gem 'cucumber', :group => :test
   generate(:cucumber)
 end
 
 git_commit_all 'Added email_spec for email testing.' do
   # TODO:   require 'email_spec/cucumber' after the world require
-  gem 'email_spec', :env => :test
+  gem 'email_spec', :group => :test
   generate :email_spec
 end
 
