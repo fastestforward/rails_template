@@ -171,6 +171,10 @@ end
 #   gem "rails-footnotes", :group => :development
 # end
 
+git_commit_all 'Added will_paginate for pagination.' do
+  gem 'will_paginate'
+end
+
 git_commit_all 'Added railmail for development email inspection.' do
   plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :group => :development
   environment 'ActionMailer::Base.delivery_method = :railmail', :group => :development
@@ -188,10 +192,6 @@ end
 git_commit_all 'Added paperclip for handling attachments.' do
   gem 'paperclip'
   gem 'right_aws' # required by paperclip
-end
-
-git_commit_all 'Added will_paginate for pagination.' do
-  gem 'will_paginate'
 end
 
 git_commit_all 'Added newrelic_rpm for performance inspection in development and production.' do
