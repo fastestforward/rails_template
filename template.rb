@@ -114,7 +114,7 @@ def show_post_instructions
 end
 
 def quiet_run(cmd)
-  run "#{cmd} 2> /dev/null", false
+  run "#{cmd} 2> /dev/null", :verbose => false
 end
 
 def remove_crap
