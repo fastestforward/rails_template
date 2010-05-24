@@ -194,12 +194,12 @@ git_commit_all 'Added paperclip for handling attachments.' do
   gem 'right_aws' # required by paperclip
 end
 
-git_commit_all 'Added newrelic_rpm for performance inspection in development and production.' do
-  gem "newrelic_rpm"
-  file 'config/newrelic.yml', ''
-  
-  post_instruction 'Install and configure Newrelic: config/newrelic.yml'
-end
+# git_commit_all 'Added newrelic_rpm for performance inspection in development and production.' do
+#   gem "newrelic_rpm"
+#   file 'config/newrelic.yml', ''
+#   
+#   post_instruction 'Install and configure Newrelic: config/newrelic.yml'
+# end
 
 git_commit_all 'Setting sessions to expire after 2 weeks.' do
   initializer 'sessions.rb' do
