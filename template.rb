@@ -206,7 +206,7 @@ end
 
 git_commit_all 'Setting sessions to expire after 2 weeks.' do
   initializer 'sessions.rb' do
-    'ActionController::Base.session_options[:expire_after] = 2.weeks'
+    'ActionDispatch::Base.session_options[:expire_after] = 2.weeks'
   end
 end
 
