@@ -1,3 +1,4 @@
+
 def git_commit_all(message, options = '')
   unless options.is_a?(Hash) && options.delete(:initial)
     if git_dirty?
@@ -12,7 +13,8 @@ def git_commit_all(message, options = '')
   remove_crap
 
   git :add => "."
-  git :commit => %Q{#{options} -a -m #{message.inspect}}
+  ostr = options.blank? ? "" : options
+  git :commit => %Q{#{ostr} -a -m #{message.inspect}}
 end
 
 def git_dirty?
@@ -190,7 +192,7 @@ git_commit_all 'Added limerick_rake for handy rake tasks.' do
 end
 
 git_commit_all 'Added paperclip for handling attachments.' do
-  gem 'paperclip'
+  plugin 'paperclip', :git => "git://github.com/thoughtbot/paperclip.git"
   gem 'right_aws' # required by paperclip
 end
 
