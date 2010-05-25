@@ -219,9 +219,9 @@ git_commit_all 'Removing default test directory in favor of rspec and cucumber.'
 end
 
 git_commit_all 'Added rspec and rspec-rails.' do
-  gem 'rspec', :require => 'spec', :group => :test
-  gem 'rspec-rails', :require => 'spec/rails', :group => :test
-  generate(:rspec)
+  gem 'rspec', '>=2.0.0.beta.8', :require => 'spec', :group => :test
+  gem 'rspec-rails', '>=2.0.0.beta.8', :require => 'spec/rails', :group => :test
+  generate("rspec:install")
 end
 
 git_commit_all 'Added remarkable to spec simple things simply.' do
@@ -240,17 +240,17 @@ git_commit_all 'Added email_spec for email testing.' do
 end
 
 git_commit_all 'Added authlogic for application authentication.' do
-  gem 'authlogic'
+  plugin 'authlogic', :git => "git://github.com/netshade/authlogic.git" #, :branch => "rails-3.0-generators-fix"
   model_name = 'user'
 
   route("map.resource :#{model_name}_session")
   
   # FIXME: this is creating resource and resources routes.
   # FIXME: should clean up any unecessary actions/views
-  generate 'rspec_controller', "#{model_name}_sessions new"
-
-  generate(:session, "-f #{model_name}_session")  
-  
+  generate(:model, model_name, "email:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string", "--orm active_record")
+  generate(:controller, model_name.pluralize, "-t rspec")
+  generate(:controller, "#{model_name}_sessions new", "-t rspec")
+  generate(:session, "#{model_name}_session")
   replace_class "app/controllers/#{model_name}_sessions_controller.rb", reindent(%Q{
     def new
       @#{model_name}_session = #{model_name.camelcase}Session.new
@@ -277,7 +277,6 @@ git_commit_all 'Added authlogic for application authentication.' do
   }, 2)    
 
   # FIXME: unique and not null on email
-  generate('rspec_scaffold', "#{model_name} email:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string")
   add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
   replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
     before_filter :require_user, :except => [:new, :create, :show]
@@ -724,7 +723,7 @@ end
 
 git_commit_all 'Adding some standard time formats' do
   initializer 'time_formats.rb', reindent(%q{
-     ActiveSupport::CoreExtensions::Time::Conversions::DATE_FORMATS.update({
+     Time::DATE_FORMATS.update({
        # 4/5/9
        :mdy => proc { |t| t.strftime('%m/%d/%y').gsub /(\b)0/, '\1' },
        # Sunday, April 5, 2009
