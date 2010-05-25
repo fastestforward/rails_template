@@ -206,7 +206,11 @@ end
 
 git_commit_all 'Setting sessions to expire after 2 weeks.' do
   initializer 'sessions.rb' do
-    'ActionDispatch::Base.session_options[:expire_after] = 2.weeks'
+    <<-EORB
+Rails.application.config.action_dispatch.session = {
+  :expires => 2.weeks
+}
+    EORB
   end
 end
 
