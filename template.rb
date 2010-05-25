@@ -1,3 +1,4 @@
+require 'active_support/core_ext/array/wrap'
 
 def git_commit_all(message, options = '')
   unless options.is_a?(Hash) && options.delete(:initial)
