@@ -178,11 +178,11 @@ git_commit_all 'Added will_paginate for pagination.' do
   gem "will_paginate", :git => "http://github.com/mislav/will_paginate.git", :branch => "rails3" 
 end
 
-git_commit_all 'Added railmail for development email inspection.' do
-  plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :group => :development
-  environment 'ActionMailer::Base.delivery_method = :railmail', :group => :development
-  generate 'railmail_migration'
-end
+# git_commit_all 'Added railmail for development email inspection.' do
+#   plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :group => :development
+#   environment 'Rails.application.config.actionmailer.delivery_method = :railmail', :env => :development
+#   generate 'railmail_migration'
+# end
 
 git_commit_all 'Added annotate to display database schema in model files.' do
   gem 'annotate', :group => :development
@@ -240,14 +240,14 @@ git_commit_all 'Added email_spec for email testing.' do
 end
 
 git_commit_all 'Added authlogic for application authentication.' do
-  plugin 'authlogic', :git => "git://github.com/netshade/authlogic.git" #, :branch => "rails-3.0-generators-fix"
+  plugin 'authlogic', :git => "git://github.com/netshade/authlogic.git", :revision => "rails-3.0-generators-fix"
   model_name = 'user'
 
   route("map.resource :#{model_name}_session")
   
   # FIXME: this is creating resource and resources routes.
   # FIXME: should clean up any unecessary actions/views
-  generate(:model, model_name, "email:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string", "--orm active_record")
+  generate(:model, model_name, "email:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string", "--orm active_record -t rspec")
   generate(:controller, model_name.pluralize, "-t rspec")
   generate(:controller, "#{model_name}_sessions new", "-t rspec")
   generate(:session, "#{model_name}_session")
@@ -704,7 +704,7 @@ git_commit_all 'Basic application layout.' do
 end
 
 git_commit_all 'Added static_pages for handling static pages and error messages.' do
-  plugin 'static_pages', :git => 'git://github.com/jqr/static_pages.git'
+  plugin 'static_pages', :git => 'git://github.com/netshade/static_pages.git', :revision => "rails-3.0-compat"
   
   %w(index about contact privacy 404 422 500).each do |page|
     file "app/views/static_pages/#{page}.html.erb", reindent(%Q{
