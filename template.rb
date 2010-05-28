@@ -633,7 +633,7 @@ git_commit_all 'Basic application layout.' do
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/reset/reset-min.css">
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/fonts/fonts-min.css">
         <!-- reset ie grid typography -->
-        <% Rails.logger.warning "You do not have any stylesheets installed with this app, edit app/views/layouts/application.html.erb to adjust" %>
+        <% Rails.logger.warn "You do not have any stylesheets installed with this app, edit app/views/layouts/application.html.erb to adjust" %>
         <%# = stylesheet_link_tag %w(formtastic formtastic_changes application) %>
         <%# = stylesheet_link_tag 'print', :media => 'print' %>
         <!--[if lt IE 8]>
