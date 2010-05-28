@@ -192,9 +192,9 @@ git_commit_all 'Added limerick_rake for handy rake tasks.' do
   plugin 'limerick_rake', :git => "git://github.com/thoughtbot/limerick_rake.git"
 end
 
-git_commit_all 'Added paperclip for handling attachments.' do
-  plugin 'paperclip', :git => "git://github.com/thoughtbot/paperclip.git"
-  gem 'right_aws' # required by paperclip
+git_commit_all 'Added carrierwave for handling attachments.' do
+  plugin 'carrierwave', :git => "git://github.com/jnicklas/carrierwave.git"
+  gem 'aws' # required by carrierwave
 end
 
 # git_commit_all 'Added newrelic_rpm for performance inspection in development and production.' do
