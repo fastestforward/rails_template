@@ -177,7 +177,7 @@ end
 
 git_commit_all 'Added railmail for development email inspection.' do
   plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :group => :development
-  environment 'ActionMailer::Base.delivery_method = :railmail', :group => :development
+  environment 'config.action_mailer.delivery_method = :railmail', :group => :development
   generate 'railmail_migration'
 end
 
