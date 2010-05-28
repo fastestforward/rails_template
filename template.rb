@@ -212,13 +212,13 @@ git_commit_all 'Removing default test directory in favor of rspec and cucumber.'
 end
 
 git_commit_all 'Added rspec and rspec-rails.' do
-  gem 'rspec', :require => 'spec', :group => :test
-  gem 'rspec-rails', :require => 'spec/rails', :group => :test
+  gem 'rspec', :lib => 'spec', :group => :test
+  gem 'rspec-rails', :lib => 'spec/rails', :group => :test
   generate(:rspec)
 end
 
 git_commit_all 'Added remarkable to spec simple things simply.' do
-  gem 'remarkable', :require => 'remarkable', :group => :test
+  gem 'remarkable', :lib => 'remarkable', :group => :test
 end
 
 git_commit_all 'Added cucumber for acceptance testing.' do
