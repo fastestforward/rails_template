@@ -244,7 +244,7 @@ git_commit_all 'Added authlogic for application authentication.' do
   model_name = 'user'
 
   route("map.resource :#{model_name}_session")
-  
+  route("map.resources :#{model_name.pluralize}") 
   # FIXME: this is creating resource and resources routes.
   # FIXME: should clean up any unecessary actions/views
   generate(:model, model_name, "email:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string", "--orm active_record -t rspec")
@@ -614,7 +614,7 @@ end
 
 
 git_commit_all 'Added formtastic for standard forms' do
-  gem 'formtastic'
+  gem 'formtastic', :git => "git://github.com/justinfrench/formtastic.git", :branch => "rails3"
   generate :formtastic_stylesheets
 end
 
@@ -633,8 +633,9 @@ git_commit_all 'Basic application layout.' do
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/reset/reset-min.css">
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/fonts/fonts-min.css">
         <!-- reset ie grid typography -->
-        <%= stylesheet_link_tag %w(formtastic formtastic_changes application) %>
-        <%= stylesheet_link_tag 'print', :media => 'print' %>
+        <% Rails.logger.warning "You do not have any stylesheets installed with this app, edit app/views/layouts/application.html.erb to adjust" %>
+        <%# = stylesheet_link_tag %w(formtastic formtastic_changes application) %>
+        <%# = stylesheet_link_tag 'print', :media => 'print' %>
         <!--[if lt IE 8]>
           <%= stylesheet_link_tag 'ie' %>
         <![endif]-->
