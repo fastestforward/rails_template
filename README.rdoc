@@ -4,6 +4,12 @@ Loosely based off of other templates and our standard codes.
 
 * http://github.com/jeremymcanally/rails-templates/tree/master
 
+This Rails 3.0 branch requires you have rails HEAD installed as your current Rails gem, and that you have also applied
+the following patch:
+
+https://rails.lighthouseapp.com/projects/8994/tickets/4719-plugin-action-does-not-conform-to-scriptrails-plugin-install
+
+
 
 == Current Template Implementation
 
