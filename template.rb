@@ -576,9 +576,10 @@ end
 #   post_instruction 'Configure Capistrano: config/deploy.rb'
 # end
 
-git_commit_all 'Added delayed_job for background tasks' do
+git_commit_all 'Added delayed_job for background tasks.' do
   gem 'delayed_job'
-
+  generate 'delayed_job'
+  
   file 'lib/tasks/delayed_job.rake', reindent(%q{
     begin
       require 'delayed/tasks'
