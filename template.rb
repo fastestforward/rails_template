@@ -629,7 +629,7 @@ git_commit_all 'Basic application layout.' do
     <DOCTYPE html>
     <html>
       <head>
-        <title><%= strip_tags(page_title) %></title>
+        <title><%= strip_tags(page_and_site_title) %></title>
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/reset/reset-min.css">
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/fonts/fonts-min.css">
         <!-- reset ie grid typography -->
@@ -672,20 +672,49 @@ git_commit_all 'Basic application layout.' do
     }
   }, 0)
   
+  slogans = "
+    If you really want to know
+    Keep it all here
+    Intensify your Intensity
+    SRSLY
+  ".strip.split("\n")
+
+
   # TODO: style flash messages
-  
-  add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%Q{
-    def page_title
-      [@title, site_title].compact.join(' // ')
-    end
-    
-    def site_title
-      '#{application_name.titlecase}'
-    end
-    
-    def title(text = nil)
-      @title = text
-      content_tag('h1', text)
+  file 'app/helpers/title_helper.rb', reindent(%Q{
+    module TitleHelper
+      def page_and_site_title
+        if @page_title.present?
+          [@page_title, site_title]
+        else
+          [site_title, site_slogan]
+        end.compact.join(' // ')
+      end
+
+      def page_title
+        @page_title
+      end
+
+      def meta_title
+        if page_title.present?
+          page_title
+        else
+          site_title
+        end
+      end
+
+      def site_slogan
+        #{slogans.rand.inspect}
+      end
+
+      def title(text = nil)
+        @page_title = text
+        content_tag('h2', text)
+      end
+
+      def site_title
+        #{application_name.humanize.inspect}
+      end
     end
     
     def flash_messages
