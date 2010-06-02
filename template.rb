@@ -642,23 +642,79 @@ git_commit_all 'Basic application layout.' do
         <%= yield :head %>
       </head>
       <body>
-        <% if current_user %>
-          <%= link_to 'Logout', user_session_path, :method => :delete %>
-        <% else %> 
-          <%= link_to 'Login', new_user_session_path %>
-          <%= link_to 'Register', new_user_path %>
-        <% end %>
+        <div id="container">
+          <h1><%= link_to h(site_title), '/' %></h1>
+          <ul id="user_actions">
+            <% if current_user %>
+              <%= link_to 'Logout', user_session_path, :method => :delete %>
+            <% else %> 
+              <%= link_to 'Login', new_user_session_path %>
+              <%= link_to 'Register', new_user_path %>
+            <% end %>
+          </ul>
 
-        <%= flash_messages %>
+          <%= flash_messages %>
 
-        <%= yield %>
-        
+          <div id="content">
+            <%= yield %>
+          </div>
+        </div>
         <%= yield :foot %>
       </body>
     </html>
   })
   
-  # TODO: application stylesheet
+  file "public/stylesheets/application.css", reindent(%Q{
+    html {
+      background: #fafafa;
+    }
+    body {
+      background: url(http://grawesome.heroku.com/ddd/fafafa/8x256.png) repeat-x;
+    }
+
+    #container {
+      position: relative;
+      width: 960px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 300%;
+      padding: 15px 0 5px 0;
+    }
+    h1 a {
+      color: inherit;
+      text-decoration: inherit;
+    }
+
+    #content {
+      border: 1px solid #bbb;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+      -moz-box-shadow: 0 0 5px #ccc;
+      -webkit-box-shadow: 0 0 5px #ccc;
+      padding: 20px 25px;
+      min-height: 500px;
+      background: #fff;
+    }
+
+    h2 {
+      font-size: 200%;
+    }
+
+    #user_actions {
+      padding: 5px 0;
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #ccc;
+      -moz-border-radius: 0 0 5px 5px;
+      -webkit-border-radius: 10px;
+    }
+
+    #user_actions a {
+      padding: 5px 10px;
+    }
+  }, 0)
   
   file "public/stylesheets/formtastic_changes.css", reindent(%Q{
     form.formtastic fieldset ol li {
@@ -716,7 +772,10 @@ git_commit_all 'Basic application layout.' do
         #{application_name.humanize.inspect}
       end
     end
-    
+  }, 0)
+  
+  add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%q{
+
     def flash_messages
       types = [:error, :notice, :warning]
       if types.any? { |t| !flash[t].blank? }
@@ -725,9 +784,86 @@ git_commit_all 'Basic application layout.' do
             content_tag(:div, flash[type], :class => type)
           end
         end.join
-        
+
         content_tag(:div, messages, :id => 'flash')
       end
+    end
+
+
+    def pluralize_with_delimiter(count, singluar, plural = nil)
+      number_with_delimiter(count) + ' ' + pluralize_without_number(count, singluar, plural)
+    end
+
+    def pluralize_without_number(count, singular, plural = nil)
+      count == 1 ? singular : plural || singular.pluralize
+    end
+
+    def system_status
+      items = [content_tag('li', h(Rails.env.upcase + ': ' + Time.zone.now.to_s(:long_ordinal)), :class => 'overview')]
+
+      attributes = [
+        # proc returning value                                       # pluralizable    # link             # value class
+        [proc { Delayed::Job.count },                                'job',            delayed_jobs_path, 'jobs-count'],
+        [proc { User.count },                                        'user',           admin_path,        'users-count'],
+        [proc { User.active.count  },                                'active user',    nil,               'active-users-count'],
+      ]
+
+
+      items << content_tag('li', link_to("<span>#{session[:status_bar] != false ? 'Disable' : 'Enable'}</span>", toggle_status_bar_admin_path(:return_to => url_for)))
+
+      attributes.each do |value, countable, url, value_class|
+        value = 
+          if session[:status_bar] != false
+            begin
+              Timeout.timeout(0.3) { value.call } || 'X'
+            rescue Exception
+              '?'
+            end
+          else
+            'X'
+          end
+
+        contents = content_tag('span', number_with_delimiter(value), :class => "value #{value_class}") + " #{pluralize_without_number(value, countable)}"
+        contents = link_to contents, url if url
+        items << content_tag('li', contents)
+      end
+
+      content_tag('ul', items, :id => 'system_status', :class => Rails.env)
+    end
+
+    # Returns a link to url with the specified content, automatically adds 
+    # rel="nofollow" and the external class to the link.
+    def link_to_external(content, url, options = {})
+      url = httpify_url(url)
+      link_to content, url, options.merge(:rel => :nofollow, :class => "#{options[:class].to_s} external")
+    end
+
+    # Just like link_to_external, but uses the dehttpified url as the content.
+    def link_to_external_url(url, options = {})
+      link_to_external(h(dehttpify_url(url)), url, options)
+    end
+
+    # Adds http:// to a URL if missing.
+    def httpify_url(url)
+      if url.match(/^https?\:\/\//i)
+        url
+      else
+        "http://#{url}"
+      end
+    end
+
+    # Removes http:// from a URL if present.
+    def dehttpify_url(url)
+      if url.match(/^https?\:\/\//i)
+        url.gsub(/^https?\:\/\//i, '')
+      else
+        url
+      end
+    end
+
+    # Adds rel="nofollow" and auto_link class to all links by default.
+    def auto_link(text, options = {}, &block)
+      super(text, options.reverse_merge(:link => :all, :html => { :rel => :nofollow, :class => 'auto_link', :target => '_blank' }), &block)
     end
   })
 end
