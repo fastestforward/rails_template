@@ -615,7 +615,7 @@ end
 
 git_commit_all 'Added formtastic for standard forms' do
   gem 'formtastic'
-  generate :formtastic_stylesheets
+  generate :formtastic
 end
 
 # git_commit_all 'Adding blueprint for default style' do
@@ -724,7 +724,24 @@ git_commit_all 'Basic application layout.' do
       display: block;
     }
     form.formtastic fieldset ol li label {
-      text-align: right;
+      float: none;
+    }
+    form.formtastic fieldset ol li.boolean label {
+      padding-left: 0;
+    }
+    form.formtastic fieldset ol li.hidden {
+      margin: 0;
+      padding: 0;
+    }
+    form.formtastic li.hidden {
+      display: none;
+    }
+    form.formtastic fieldset ol li p.inline-hints {
+      color:#777777;
+      margin:8px 0 0 20px;
+    }  
+    form.formtastic fieldset ol li p.inline-errors {
+      margin:8px 0 0 20px;
     }
   }, 0)
   
