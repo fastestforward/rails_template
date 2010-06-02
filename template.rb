@@ -643,6 +643,7 @@ git_commit_all 'Basic application layout.' do
         <%= yield :head %>
       </head>
       <body>
+        <%= system_status if current_user.try(:admin?) || Rails.env.development? %>
         <div id="container">
           <h1><%= link_to h(site_title), '/' %></h1>
           <ul id="user_actions">
@@ -715,6 +716,48 @@ git_commit_all 'Basic application layout.' do
     #user_actions a {
       padding: 5px 10px;
     }
+    
+    #system_status {
+      font-size: 13px;
+    }
+    #system_status.development {
+      background: #811;
+    }
+
+    #system_status.demo {
+      background: #116;
+    }
+
+    #system_status.stage {
+      background: #616;
+    }
+
+    #system_status, #system_status a {
+      color: #aaa;
+    }
+    #system_status a {
+      text-decoration: underline;
+    }
+    #system_status {
+      background: #333;
+      list-style-type: none;
+      margin: 0;
+      padding: 10px;
+      overflow: auto;
+      height: 20px;
+    }
+    #system_status li {
+      float: right;
+      padding: 0 10px;
+    }
+    #system_status .value {
+      color: #ddd;
+      font-weight: bold;
+    }
+    #system_status .overview {
+      float: left;
+    }
+    
   }, 0)
   
   file "public/stylesheets/formtastic_changes.css", reindent(%Q{
@@ -821,24 +864,19 @@ git_commit_all 'Basic application layout.' do
 
       attributes = [
         # proc returning value                                       # pluralizable    # link             # value class
-        [proc { Delayed::Job.count },                                'job',            delayed_jobs_path, 'jobs-count'],
-        [proc { User.count },                                        'user',           admin_path,        'users-count'],
+        [proc { Delayed::Job.count },                                'job',            nil,               'jobs-count'],
+        [proc { User.count },                                        'user',           nil,               'users-count'],
         [proc { User.active.count  },                                'active user',    nil,               'active-users-count'],
       ]
 
-
-      items << content_tag('li', link_to("<span>#{session[:status_bar] != false ? 'Disable' : 'Enable'}</span>", toggle_status_bar_admin_path(:return_to => url_for)))
-
       attributes.each do |value, countable, url, value_class|
         value = 
-          if session[:status_bar] != false
-            begin
-              Timeout.timeout(0.3) { value.call } || 'X'
-            rescue Exception
-              '?'
-            end
-          else
-            'X'
+          begin
+            Timeout.timeout(0.3) { value.call } || 'X'
+          rescue TimeoutError
+            '?'
+          rescue Exception
+            '!'
           end
 
         contents = content_tag('span', number_with_delimiter(value), :class => "value #{value_class}") + " #{pluralize_without_number(value, countable)}"
@@ -848,7 +886,6 @@ git_commit_all 'Basic application layout.' do
 
       content_tag('ul', items, :id => 'system_status', :class => Rails.env)
     end
-
     # Returns a link to url with the specified content, automatically adds 
     # rel="nofollow" and the external class to the link.
     def link_to_external(content, url, options = {})
@@ -884,6 +921,10 @@ git_commit_all 'Basic application layout.' do
       super(text, options.reverse_merge(:link => :all, :html => { :rel => :nofollow, :class => 'auto_link', :target => '_blank' }), &block)
     end
   })
+  
+  add_to_top_of_class 'app/models/user.rb', reindent(%Q{
+    named_scope :active, lambda { { :conditions => ['last_request_at > ?', 15.minutes.ago], :order => 'last_request_at DESC' } }
+  }, 2)
 end
 
 git_commit_all 'Added static_pages for handling static pages and error messages.' do
