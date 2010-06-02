@@ -1,0 +1,28 @@
+# TODO: forgotten password
+
+# TODO: skip prototype
+
+# TODO: skip test unit
+
+# TODO: remove concerns, included by default in Rails 3  
+
+# TODO: respond_with
+
+# TODO: filter logging
+
+# TODO: routes
+
+# TODO: h/raw escaping
+
+# TODO: succinct validations
+
+# TODO: devise
+
+# TODO: carrierwave
+
+# TODO: Added :inverse_of to Active Record associations allowing you to pull the instance of an already loaded association without hitting the database.
+
+# TODO: named_scope => scope
+
+# TODO: save(false) => save(:validate => false)
+
