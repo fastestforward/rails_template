@@ -705,8 +705,12 @@ end
 
 git_commit_all 'Added static_pages for handling static pages and error messages.' do
   plugin 'static_pages', :git => 'git://github.com/jqr/static_pages.git'
+
+  file "app/views/static_pages/index.html.erb", reindent(%Q{
+    <p>Hello world.</p>
+  })
   
-  %w(index about contact privacy 404 422 500).each do |page|
+  %w(about contact privacy 404 422 500).each do |page|
     file "app/views/static_pages/#{page}.html.erb", reindent(%Q{
       <%= title #{page.inspect} %>
     })
