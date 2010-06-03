@@ -76,6 +76,66 @@ def add_to_bottom_of_class(file, data = nil, &block)
   raise "Did not add_to_bottom_of_class: #{file.inspect}" if match_count.zero?
 end
 
+def add_to_top_of_module(file, data = nil, &block)
+  data = block.call if !data && block_given?
+  data = reindent(data, 2).chomp
+  match_count = 0
+  gsub_file file, /^(module\s+.*)/ do |match|
+    match_count += 1
+    if match_count == 1 
+      "#{match}\n#{data}\n"
+    else
+      match
+    end
+  end
+  raise "Did not add_to_top_of_module: #{file.inspect}" if match_count.zero?
+end
+
+def add_to_bottom_of_module(file, data = nil, &block)
+  data = block.call if !data && block_given?
+  data = reindent(data, 2).chomp
+  match_count = 0
+  gsub_file file, /^(end)/ do |match|
+    match_count += 1
+    if match_count == 1 
+      "#{data}\n#{match}"
+    else
+      match
+    end
+  end
+  raise "Did not add_to_bottom_of_module: #{file.inspect}" if match_count.zero?
+end
+
+def add_to_top_of_file(file, data = nil, &block)
+  data = block.call if !data && block_given?
+  data = reindent(data, 2).chomp
+  match_count = 0
+  gsub_file file, /^/ do |match|
+    match_count += 1
+    if match_count == 1 
+      "#{data}\n#{match}"
+    else
+      match
+    end
+  end
+  raise "Did not add_to_top_of_file: #{file.inspect}" if match_count.zero?
+end
+
+def add_to_bottom_of_file(file, data = nil, &block)
+  data = block.call if !data && block_given?
+  data = reindent(data, 2).chomp
+  match_count = 0
+  gsub_file file, /$/ do |match|
+    match_count += 1
+    if match_count == 1 
+      "#{data}\n#{match}"
+    else
+      match
+    end
+  end
+  raise "Did not add_to_bottom_of_file: #{file.inspect}" if match_count.zero?
+end
+
 def uncomment_line(file, line)
   gsub_file file, /#\s*#{Regexp.escape(line)}/, line
 end
@@ -232,7 +292,33 @@ git_commit_all 'Added cucumber for acceptance testing.' do
   gem 'cucumber', :env => :test
   generate(:cucumber)
   add_to_bottom_of_class('features/support/env.rb', reindent(%Q{
-    Dir[File.expand_path('RAILS_ROOT, 'spec','support','**','*.rb'))].each {|f| require f}    
+    Dir[File.expand_path(File.join(RAILS_ROOT, 'spec','support','**','*.rb'))].each {|f| require f}    
+  }))
+  
+  file('features/step_definitions/step_helpers.rb', reindent(%Q{
+    module StepHelpers
+
+      def table_from_objects(objects, methods)
+        table = [methods]
+        table += objects.collect do |object|
+          methods.collect { |m| object.send(m).to_s }
+        end
+        Cucumber::Ast::Table.new(table)
+      end
+
+      def textify_table_at(selector)
+        table = table(tableish(selector, 'td,th'))
+        table.headers.each do |header|
+          table.map_column!(header) do |text| 
+            text.to_s.strip.gsub(/<(.*?)>/, '')
+          end
+        end
+        table
+      end
+    
+    end
+
+    World(StepHelpers)
   }))
 end
 
@@ -281,9 +367,10 @@ git_commit_all 'Added authlogic for application authentication.' do
   }, 2)    
 
   # FIXME: unique and not null on email
-  generate('rspec_model', "#{model_name} email:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string admin:boolean")
+  generate('rspec_model', "#{model_name} email:string name:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string admin:boolean")
   generate('rspec_controller', 'users')
-  route('map.resources :users, :only => [:new, :create, :edit, :update]')
+  generate('rspec_controller', 'password_resets')
+  route('map.resources :users, :only => [:show, :new, :create, :edit, :update]')
   add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
   replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
     before_filter :require_user, :except => [:new, :create, :show]
@@ -587,6 +674,156 @@ git_commit_all 'Added authlogic for application authentication.' do
 
     <%= link_to 'Edit', edit_user_path(@user) %> |
     <%= link_to 'Back', users_path %>
+  }))
+  
+  add_to_top_of_file('spec/support/factories.rb', reindent(%Q{
+    Factory.sequence :email do |n|
+      "person#{'#{n}'}@example.com" 
+    end
+
+    Factory.define :#{model_name} do |f|
+      f.name { Faker::Name.name }
+      f.email do |u|
+        "#{'#{u.name.downcase.gsub(/\W/, \'\')}'}@example.com"
+      end
+      f.password "test"
+      f.password_confirmation "test"
+    end
+  }))
+  
+  add_to_bottom_of_module('features/step_definitions/step_helpers.rb', reindent(%Q{
+  
+    def find_users(hashes)
+      hashes.collect do |hash|
+        value = hash.delete("user")
+        if !value.blank?
+          user = User.find_or_create_by_name(value) do |u| 
+            u.attributes = Factory.attributes_for(:user).merge(:name => value) 
+          end
+          { :user => user }.reverse_merge(hash)
+        else
+          hash
+        end
+      end
+    end
+
+    def find_user_ids(hashes)
+      hashes.collect do |hash|
+        value = hash.delete("user")
+        if !value.blank?
+          user_id = User.find_or_create_by_name(value) do |u| 
+            u.attributes = Factory.attributes_for(:user).merge(:name => value) 
+          end.id
+          { :user_id => user_id }.reverse_merge(hash)
+        else
+          hash
+        end
+      end
+    end
+  
+  }))
+  
+  file('features/step_definitions/user_steps.rb', reindent(%Q{
+    Given /^I am signed up as "([^\\"]*)"$/ do |name|
+      @current_user = Factory(:user, :name => name)
+    end
+
+    Given /^the following users:$/ do |table|
+      table.hashes.each do |attrs|
+        attrs = attrs.dup 
+        Factory(:user, attrs)
+      end
+    end
+
+    Then /^I should see the following users:$/ do |expected_users_table|
+      expected_users_table.diff!(textify_table_at('table'))
+    end
+
+    Given /^I am logged in as "(.*)"$/ do |name|
+      Given %Q{I login as "#{'#{name}'}" with password "test"}
+      response.body.should =~ /Login successful/
+    end
+
+    Given /^I login as "(.*)" with password "(.*)"$/ do |name, password|
+      @current_user = User.find_or_create_by_name(name) do |u|
+        # Attrs might be protected
+        attrs = Factory.attributes_for(:user, :name => name, :password => password)
+        u.attributes = attrs
+        u.name = name
+        u.password = password
+      end
+      visit new_user_session_path
+      fill_in('email', :with => @current_user.email)
+      fill_in('password', :with => password)
+      click_button('Login')  
+    end
+
+    Given /^there is a user named "([^\\"]*)"$/ do |name|
+      user = User.find_or_create_by_name(name) do |u|
+        # Attrs might be protected
+        attrs = Factory.attributes_for(:user, :name => name)
+        u.attributes = attrs
+        u.name = name
+        u.password = attrs[:password]
+        u.password_confirmation = attr[:password]
+      end
+      user.valid?.should == true
+    end
+
+    Given /^I am logged in as an admin$/ do
+      Given 'I am logged in as "MrAdmin"'
+      @current_user.reload
+      @current_user.admin = true
+      @current_user.save
+    end
+
+    Given /^I am an? anonymous user$/ do
+    end
+
+    Given /^I am a logged in user$/ do
+      Given 'I am logged in as "SomeUser"'
+    end
+    
+  }))
+  
+  file('features/manage_users.feature', reindent(%Q{
+    Feature: Users
+      In order to keep information specific to himself
+      a user
+      wants to signup and manage their personal information
+
+      Scenario: A user can signup
+        Given I am on the home page
+        When I follow "Register"
+        And I fill in "email" with "kris@example.com"
+        And I fill in "password" with "test123"
+        And I fill in "password confirmation" with "test123"
+        And I press "Register"
+        Then I should see "Account registered"
+
+      Scenario: A user can login with their email address
+        Given I am signed up as "Kris"
+        And I am on the home page
+        When I follow "Login"
+        And I fill in "email" with "kris@example.com"
+        And I fill in "password" with "test"
+        And I press "Login"
+        Then I should see "Login successful"
+
+      Scenario: A user can login with their email address with the wrong case
+        Given I am signed up as "Kris"
+        And I am on the home page
+        When I follow "Login"
+        And I fill in "email" with "KRIS@example.com"
+        And I fill in "password" with "test"
+        And I press "Login"
+        Then I should see "Login successful"
+
+      Scenario: A user can logout
+        Given I am logged in as "Kris"
+        When I follow "Logout"
+        Then I should see "Logout successful"
+    
   }))
 end
 
