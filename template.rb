@@ -281,8 +281,9 @@ git_commit_all 'Added authlogic for application authentication.' do
   }, 2)    
 
   # FIXME: unique and not null on email
-  generate('rspec_scaffold', "#{model_name} email:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string admin:boolean")
-    
+  generate('rspec_model', "#{model_name} email:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string admin:boolean")
+  generate('rspec_controller', 'users')
+  route('map.resources :users, :only => [:new, :create, :edit, :update]')
   add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
   replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
     before_filter :require_user, :except => [:new, :create, :show]
@@ -549,9 +550,6 @@ git_commit_all 'Added authlogic for application authentication.' do
     end
   })
 
-  # Removing the scafold generated forms in favor of formtastic generated ones.
-  quiet_run "rm -r app/views/#{model_name.pluralize}/new.html.erb"
-
   file("app/views/#{model_name.pluralize}/_form.html.erb", reindent(%Q{
     <% if !defined?(commit_button_text) %>
       <% commit_button_text = 'Save' %>
@@ -573,15 +571,23 @@ git_commit_all 'Added authlogic for application authentication.' do
 
   }))
 
-  quiet_run "rm -r app/views/#{model_name.pluralize}/edit.html.erb"  
   file("app/views/#{model_name.pluralize}/edit.html.erb", reindent(%Q{
 
     <%= title 'Update' %>
 
     <%= render :partial => 'form' %>
-
   }))
 
+  file("app/views/#{model_name.pluralize}/show.html.erb", reindent(%Q{
+    <p>
+      <b>Email:</b>
+      <%=h @user.email %>
+    </p>
+
+
+    <%= link_to 'Edit', edit_user_path(@user) %> |
+    <%= link_to 'Back', users_path %>
+  }))
 end
 
 if yes?('Add image uploads?')
@@ -589,7 +595,8 @@ if yes?('Add image uploads?')
     post_instruction('Configure Carrierwave: config/initializers/carrierwave.rb')
     post_instruction('Create the s3 buckets')
     generate('uploader', 'Image')
-    generate('rspec_scaffold', 'image imageable_id:integer imageable_type:string file:string')    
+    generate('rspec_model', 'image imageable_id:integer imageable_type:string file:string')    
+    generate('rspec_controller', 'images')
     route('map.resources :images')
     replace_class('app/uploaders/image_uploader.rb', reindent(%Q{
 
@@ -725,7 +732,6 @@ if yes?('Add image uploads?')
       end
     }))
 
-    quiet_run "rm -r app/views/images/new.html.erb"  
     file('app/views/images/_form.html.erb', reindent(%Q{
       <% semantic_form_for(@image, :html => { :multipart => true }) do |f| %>
         <% f.inputs do %>
@@ -743,9 +749,8 @@ if yes?('Add image uploads?')
       <%= render :partial => 'form' %>
     }))
     
-    quiet_run "rm -r app/views/images/edit.html.erb"  
-    file('app/views/images/new.html.erb', reindent(%Q{
-      <%= title 'New Image' %>
+    file('app/views/images/edit.html.erb', reindent(%Q{
+      <%= title 'Edit Image' %>
 
       <%= render :partial => 'form' %>
     }))
