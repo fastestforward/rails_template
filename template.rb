@@ -390,18 +390,7 @@ git_commit_all 'Added authlogic for application authentication.' do
       <% end %>
     <% end %>
   })
-  
-  file 'app/views/users/new.html.erb', reindent(%Q{
-    <%= title 'Register' %>
-
-    <% semantic_form_for(@#{model_name}) do |f| %>
-      <%= f.inputs :email, :password, :password_confirmation %>
-      <% f.buttons do %>
-        <%= f.commit_button 'Register' %>
-      <% end %>
-    <% end %>
-  })
-  
+    
   add_to_bottom_of_class 'spec/spec_helper.rb', reindent(%Q{
     def login_as(user)
       controller.stub!(:current_user).and_return(user)
@@ -594,7 +583,7 @@ git_commit_all 'Added authlogic for application authentication.' do
   }))
 
   quiet_run "rm -r app/views/#{model_name.pluralize}/edit.html.erb"  
-  file("app/views/#{model_name.pluralize}/new.html.erb", reindent(%Q{
+  file("app/views/#{model_name.pluralize}/edit.html.erb", reindent(%Q{
 
     <%= title 'Update' %>
 
@@ -606,7 +595,7 @@ end
 
 if yes?('Add image uploads?')
   git_commit_all 'Add image uploads to users' do
-    post_instructions('Configure Carrierwave: config/initializers/carrierwave.rb')
+    post_instruction('Configure Carrierwave: config/initializers/carrierwave.rb')
     generate('uploader', 'Image')
     generate('rspec_model', 'image imageable_id:integer imageable_type:string file:string')
     replace_class('app/uploaders/image_uploader.rb', reindent(%Q{
@@ -695,17 +684,17 @@ if yes?('Add image uploads?')
         <%= f.inputs :email, :password, :password_confirmation %>
         <% f.semantic_fields_for :images do |image_form| %>
           <% image_form.inputs do %>
-            <% if image_form.object.file? %>
+            <% if image_form.object && image_form.object.file? %>
               <li class="thumb">
                 <%= image_tag(image_form.object.file_path(:thumb)) %>
               </li>
             <% end %>
             <%= image_form.input :file, :as => :file %>            
-            <% if image_form.object.file? %>
+            <% if image_form.object && image_form.object.file? %>
               <%= image_form.input :remove_file, :as => :boolean %>
-            <% end %
+            <% end %>
           <% end %>
-        <% end %
+        <% end %>
         <% f.buttons do %>
           <%= f.commit_button commit_button_text %>
         <% end %>
@@ -825,7 +814,7 @@ git_commit_all 'Basic application layout.' do
         <%= yield :foot %>
         <script type="text/javascript">
           jQuery(function() {
-            <%= yeild :ready %>
+            <%= yield :ready %>
           })
         </script>
       </body>
