@@ -417,10 +417,12 @@ git_commit_all 'Added email_spec for email testing.' do
   # gem 'email_spec', :env => :test
   plugin('email_spec', :git => 'git://github.com/fastestforward/email-spec.git')
   generate :email_spec
-  replace_module('features/step_definitions/email_steps.rb', reindent(%Q{
+  replace_in_file('features/step_definitions/email_steps.rb', /(module EmailHelpers)(.*?)(end{1,})/m, reindent(%Q{
+  \\1
+
     def current_email_address
       @current_user.email
-    end    
+    \\3
   }))
 end
 
@@ -467,7 +469,19 @@ git_commit_all 'Added authlogic for application authentication.' do
   generate('rspec_controller', user_model_name.pluralize)
   route("map.resources :#{user_model_name.pluralize}, :except => :index")
 
-  add_to_top_of_class File.join('app', 'models', "#{user_model_name}.rb"), "acts_as_authentic"
+  add_to_top_of_class File.join('app', 'models', "#{user_model_name}.rb"), reindent(%Q{
+    acts_as_authentic do |c|
+      c.login_field = :email
+      c.validate_login_field = true
+      c.validates_length_of_password_confirmation_field_options = validates_length_of_password_confirmation_field_options.merge({
+        :minimum => 4
+      })
+      c.require_password_confirmation = false
+    end    
+  
+    validates_presence_of :password, :if => :force_validate_password
+  })
+  
   replace_class "app/controllers/#{user_model_name.pluralize}_controller.rb", reindent(%Q{
     before_filter :require_#{user_model_name}, :except => [:new, :create, :show]
     before_filter :require_no_#{user_model_name}, :only => [:new, :create]
@@ -742,7 +756,7 @@ git_commit_all 'Added authlogic for application authentication.' do
     <% end %>
 
     <% semantic_form_for(@#{user_model_name}) do |f| %>
-      <%= f.inputs :email, :password, :password_confirmation %>
+      <%= f.inputs :email, :password %>
       <% f.buttons do %>
         <%= f.commit_button commit_button_text %>
       <% end %>
@@ -787,7 +801,6 @@ git_commit_all 'Added authlogic for application authentication.' do
         "#{'#{u.name.downcase.gsub(/\W/, \'\')}'}@example.com"
       end
       f.password "test"
-      f.password_confirmation "test"
     end
   }))
   
@@ -865,7 +878,6 @@ git_commit_all 'Added authlogic for application authentication.' do
         u.attributes = attrs
         u.name = name
         u.password = attrs[:password]
-        u.password_confirmation = attr[:password]
       end
       #{user_model_name}.valid?.should == true
     end
@@ -897,7 +909,6 @@ git_commit_all 'Added authlogic for application authentication.' do
         When I follow "Register"
         And I fill in "email" with "kris@example.com"
         And I fill in "password" with "test123"
-        And I fill in "password confirmation" with "test123"
         And I press "Register"
         Then I should see "Account registered"
 
