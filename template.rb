@@ -24,6 +24,14 @@ def model(name, contents)
   file(File.join('app', 'models', "#{name}.rb"), %Q{class #{name.camelcase} < ActiveRecord::Base\n#{contents}\nend})
 end
 
+def model_name
+  @model_name
+end
+
+def model_name=(name)
+  @model_name = name
+end
+
 def reindent(data, base = 0)
   lines = data.split("\n")
   smallest_indentation = lines.collect { |l| l =~ /\S/ }.compact.min
@@ -191,9 +199,9 @@ git_commit_all 'Added limerick_rake for handy rake tasks.' do
   plugin 'limerick_rake', :git => "git://github.com/thoughtbot/limerick_rake.git"
 end
 
-git_commit_all 'Added paperclip for handling attachments.' do
-  gem 'paperclip'
-  gem 'right_aws' # required by paperclip
+git_commit_all 'Added carrierwave for handling attachments.' do
+  gem 'carrierwave'
+  gem 'aws', :lib => 'aws/s3'
 end
 
 git_commit_all 'Added will_paginate for pagination.' do
@@ -238,9 +246,11 @@ git_commit_all 'Added email_spec for email testing.' do
   generate :email_spec
 end
 
+
 git_commit_all 'Added authlogic for application authentication.' do
   gem 'authlogic'
-  model_name = 'user'
+
+  self.model_name = 'user'
 
   route("map.resource :#{model_name}_session")
   
@@ -277,11 +287,7 @@ git_commit_all 'Added authlogic for application authentication.' do
 
   # FIXME: unique and not null on email
   generate('rspec_scaffold', "#{model_name} email:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string admin:boolean")
-  
-  # Removing the scafold generated forms in favor of formtastic generated ones.
-  quiet_run "rm -r app/views/#{model_name.pluralize}/new.html.erb"
-  quiet_run "rm -r app/views/#{model_name.pluralize}/edit.html.erb"  
-  
+    
   add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
   replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
     before_filter :require_user, :except => [:new, :create, :show]
@@ -558,6 +564,150 @@ git_commit_all 'Added authlogic for application authentication.' do
 
     end
   })
+
+  # Removing the scafold generated forms in favor of formtastic generated ones.
+  quiet_run "rm -r app/views/#{model_name.pluralize}/new.html.erb"
+
+  file("app/views/#{model_name.pluralize}/_form.html.erb", reindent(%Q{
+    <% if !defined?(commit_button_text) %>
+      <% commit_button_text = 'Save' %>
+    <% end %>
+
+    <% semantic_form_for(@user) do |f| %>
+      <%= f.inputs :email, :password, :password_confirmation %>
+      <% f.buttons do %>
+        <%= f.commit_button commit_button_text %>
+      <% end %>
+    <% end %>    
+  }))
+  
+  file("app/views/#{model_name.pluralize}/new.html.erb", reindent(%Q{
+
+    <%= title 'Register' %>
+
+    <%= render :partial => 'form', :locals => { :commit_button_text => 'Register' } %>
+
+  }))
+
+  quiet_run "rm -r app/views/#{model_name.pluralize}/edit.html.erb"  
+  file("app/views/#{model_name.pluralize}/new.html.erb", reindent(%Q{
+
+    <%= title 'Update' %>
+
+    <%= render :partial => 'form' %>
+
+  }))
+
+end
+
+if yes?('Add image uploads?')
+  git_commit_all 'Add image uploads to users' do
+    generate('uploader', 'Image')
+    generate('rspec_model', 'image imageable_id:integer imageable_type:string file:string')
+    replace_class('app/uploaders/image_uploader.rb', reindent(%Q{
+
+      include CarrierWave::RMagick
+      
+      version :thumb do
+        process :resize_to_fill => [50,50]
+      end
+
+      version :avatar do
+        process :resize_to_fill => [100,100]    
+      end
+
+      version :full do
+        process :resize_to_fill => [700,700]
+      end
+
+      def store_dir
+        "uploads/#{'#{model.class.to_s.underscore}'}/#{'#{mounted_as}'}/#{'#{model.id}'}"
+      end
+
+      def default_url
+        "/images/fallback/" + [version_name, "default.png"].compact.join('_')
+      end
+
+      def extension_white_list
+        %w(jpg jpeg gif png)
+      end
+
+    }))
+    
+    file('config/initializers/carrierwave.rb', reindent(%Q{
+      CarrierWave.configure do |config|
+        if Rails.env.test? || Rails.env.cucumber?
+          config.storage = :file
+          config.enable_processing = false
+        else
+          config.storage = :s3
+          config.s3_access_key_id = 'xxx'
+          config.s3_secret_access_key = 'xxx'
+          config.s3_bucket = "#{application_name.dasherize}-#{'#{Rails.env.dasherize}'}"
+        end
+      end
+    }))
+    
+    file('spec/uploaders/image_uploader_spec.rb', reindent(%Q{
+      require 'spec_helper'
+      require 'carrierwave/test/matchers'
+
+      describe ImageUploader do
+
+        before do
+          ImageUploader.enable_processing = true
+        end
+
+        after do
+          ImageUploader.enable_processing = false
+        end
+
+      end      
+    }));
+    
+    replace_class('app/models/image.rb', reindent(%Q{
+      
+      mount_uploader :file, ImageUploader
+
+      belongs_to :imageable, :polymorphic => true
+      
+      def file_path(style = :avatar)
+        file.versions[style].try(:url)
+      end
+      
+    }))
+    
+    add_to_top_of_class('app/models/user.rb', %Q{
+      has_many :images, :as => :imageable
+    })
+    
+    file("app/views/#{model_name.pluralize}/_form.html.erb", reindent(%Q{
+      <% if !defined?(commit_button_text) %>
+        <% commit_button_text = 'Save' %>
+      <% end %>
+
+      <% semantic_form_for(@user) do |f| %>
+        <%= f.inputs :email, :password, :password_confirmation %>
+        <% f.semantic_fields_for :images do |image_form| %>
+          <% image_form.inputs do %>
+            <% if image_form.object.file? %>
+              <li class="thumb">
+                <%= image_tag(image_form.object.file_path(:thumb)) %>
+              </li>
+            <% end %>
+            <%= image_form.input :file, :as => :file %>            
+            <% if image_form.object.file? %>
+              <%= image_form.input :remove_file, :as => :boolean %>
+            <% end %
+          <% end %>
+        <% end %
+        <% f.buttons do %>
+          <%= f.commit_button commit_button_text %>
+        <% end %>
+      <% end %>    
+    }))
+    
+  end
 end
 
 git_commit_all 'Added hoptoad to catch production exceptions.' do
@@ -645,6 +795,7 @@ git_commit_all 'Basic application layout.' do
           <%= stylesheet_link_tag 'ie' %>
         <![endif]-->
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+        <%= javascript_include_tag 'application' %>
         <%= yield :head %>
       </head>
       <body>
