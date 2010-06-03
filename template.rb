@@ -24,14 +24,6 @@ def model(name, contents)
   file(File.join('app', 'models', "#{name}.rb"), %Q{class #{name.camelcase} < ActiveRecord::Base\n#{contents}\nend})
 end
 
-def model_name
-  @model_name
-end
-
-def model_name=(name)
-  @model_name = name
-end
-
 def reindent(data, base = 0)
   lines = data.split("\n")
   smallest_indentation = lines.collect { |l| l =~ /\S/ }.compact.min
@@ -253,8 +245,7 @@ end
 
 git_commit_all 'Added authlogic for application authentication.' do
   gem 'authlogic'
-
-  self.model_name = 'user'
+  model_name = 'user'
 
   route("map.resource :#{model_name}_session")
   
@@ -596,8 +587,10 @@ end
 if yes?('Add image uploads?')
   git_commit_all 'Add image uploads to users' do
     post_instruction('Configure Carrierwave: config/initializers/carrierwave.rb')
+    post_instruction('Create the s3 buckets')
     generate('uploader', 'Image')
-    generate('rspec_model', 'image imageable_id:integer imageable_type:string file:string')
+    generate('rspec_scaffold', 'image imageable_id:integer imageable_type:string file:string')    
+    route('map.resources :images')
     replace_class('app/uploaders/image_uploader.rb', reindent(%Q{
 
       include CarrierWave::RMagick
@@ -672,33 +665,115 @@ if yes?('Add image uploads?')
     }))
     
     add_to_top_of_class('app/models/user.rb', %Q{
+
       has_many :images, :as => :imageable
+
+      accepts_nested_attributes_for :images
+
     })
     
-    file("app/views/#{model_name.pluralize}/_form.html.erb", reindent(%Q{
-      <% if !defined?(commit_button_text) %>
-        <% commit_button_text = 'Save' %>
-      <% end %>
+    replace_class('app/controllers/images_controller.rb', reindent(%{
+      before_filter :require_user
+      
+      def index
+        @images = scope.all
+      end
+      
+      def show
+        @image = scope.find(params[:id])
+      end
+      
+      def new
+        @image = scope.new
+      end
+      
+      def create
+        @image = scope.new(params[:image])
+        if @image.save
+          flash[:notice] = 'Image was successfully created'
+          redirect_to @image
+        else
+          render :action => 'new'
+        end
+      end
+      
+      def edit
+        @image = scope.find(params[:id])
+      end
+      
+      def update
+        @image = scope.find(params[:id])
+        if @image.update_attributes(params[:image])
+          flash[:notice] = 'Image was successfully updated'
+          redirect_to @image
+        else
+          render :action => 'edit'
+        end
+      end
+      
+      def destroy
+        @image = scope.find(params[:id])
+        @image.destroy
+        flash[:notice] = 'Image was succesfully removed'
+        redirect_to images_path
+      end
+      
+      private
+      
+      def scope
+        current_user.images
+      end
+    }))
 
-      <% semantic_form_for(@user) do |f| %>
-        <%= f.inputs :email, :password, :password_confirmation %>
-        <% f.semantic_fields_for :images do |image_form| %>
-          <% image_form.inputs do %>
-            <% if image_form.object && image_form.object.file? %>
-              <li class="thumb">
-                <%= image_tag(image_form.object.file_path(:thumb)) %>
-              </li>
-            <% end %>
-            <%= image_form.input :file, :as => :file %>            
-            <% if image_form.object && image_form.object.file? %>
-              <%= image_form.input :remove_file, :as => :boolean %>
-            <% end %>
-          <% end %>
+    quiet_run "rm -r app/views/images/new.html.erb"  
+    file('app/views/images/_form.html.erb', reindent(%Q{
+      <% semantic_form_for(@image, :html => { :multipart => true }) do |f| %>
+        <% f.inputs do %>
+          <%= f.input :file, :as => :file %>
         <% end %>
         <% f.buttons do %>
-          <%= f.commit_button commit_button_text %>
+          <%= f.commit_button 'Save' %>
         <% end %>
-      <% end %>    
+      <% end %>      
+    }))
+
+    file('app/views/images/new.html.erb', reindent(%Q{
+      <%= title 'New Image' %>
+
+      <%= render :partial => 'form' %>
+    }))
+    
+    quiet_run "rm -r app/views/images/edit.html.erb"  
+    file('app/views/images/new.html.erb', reindent(%Q{
+      <%= title 'New Image' %>
+
+      <%= render :partial => 'form' %>
+    }))
+
+    file('app/views/images/index.html.erb', reindent(%Q{
+      <%= title 'Images' %>
+      
+      <%= link_to 'New', new_image_path %>
+      
+      <ul id="images">
+      <% @images.each do |image| %>
+        <li>
+          <%= link_to image_tag(image.file_path), image_path(image) %>
+        </li>
+      <% end %>
+    }))
+    
+    file('app/views/images/show.html.erb', reindent(%Q{
+      <%= title Image %>
+
+      <div>
+        <%= image_tag(@image.file_path) %>
+      </div>
+
+      <div>
+        <%= link_to 'Edit', edit_image_path(@image) %> |
+        <%= link_to 'Delete', image_path(@image), :confirm => 'Are you sure?', :method => :delete %>      
+      </div>
     }))
     
   end
