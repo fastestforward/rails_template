@@ -40,10 +40,19 @@ def replace_class(file, data = nil, &block)
   gsub_file file, /^(class\s+.*?$).*^(end)/m, "\\1\n#{data}\n\\2" 
 end
 
-def replace_describe(file, data = nil, &block)
+def replace_module(file, data = nil, &block)
   data = block.call if !data && block_given?
   data = reindent(data, 2).chomp
-  gsub_file file, /^(describe\s+.*?$).*^(end)/m, "\\1\n#{data}\n\\2" 
+  gsub_file file, /^(module\s+.*?$).*^(end)/m, "\\1\n#{data}\n\\2" 
+end
+
+def replace_describe(file, data = nil, &block)
+  replace_in_file(file, /^(describe\s+.*?$).*^(end)/m, data, &block)
+end
+
+def replace_in_file(file, regex, data = nil, &block)
+  data = block.call if !data && block_given?
+  gsub_file file, regex, data 
 end
 
 def add_to_top_of_class(file, data = nil, &block)
@@ -121,11 +130,19 @@ def add_to_top_of_file(file, data = nil, &block)
   raise "Did not add_to_top_of_file: #{file.inspect}" if match_count.zero?
 end
 
-def add_to_bottom_of_file(file, data = nil, &block)
+def add_to_bottom_of_file(path, data = nil, &block)
+  data = block.call if !data && block_given?
+  data = reindent(data, 2).chomp
+  File.open(path, 'a') do |file|
+    file.write(data)
+  end
+end
+
+def add_private_method_to_file(file, data = nil, &block) 
   data = block.call if !data && block_given?
   data = reindent(data, 2).chomp
   match_count = 0
-  gsub_file file, /$/ do |match|
+  gsub_file file, /^\s+?(private\s+.*)/ do |match|
     match_count += 1
     if match_count == 1 
       "#{data}\n#{match}"
@@ -133,7 +150,7 @@ def add_to_bottom_of_file(file, data = nil, &block)
       match
     end
   end
-  raise "Did not add_to_bottom_of_file: #{file.inspect}" if match_count.zero?
+  raise "Did not add_private_method_to_file: #{file.inspect}" if match_count.zero?  
 end
 
 def uncomment_line(file, line)
@@ -184,6 +201,14 @@ def remove_crap
   Dir.glob(File.join('app', 'views', 'layouts', '*.html.erb')).each do |file|
     File.unlink(file) unless File.basename(file) == 'application.html.erb'
   end
+end
+
+def user_model_name
+  @user_model_name
+end
+
+def user_model_name=(name)
+  @user_model_name = name
 end
 
 git :init
@@ -289,11 +314,40 @@ git_commit_all 'Added remarkable to spec simple things simply.' do
 end
 
 git_commit_all 'Added cucumber for acceptance testing.' do
-  gem 'cucumber', :env => :test
   generate(:cucumber)
-  add_to_bottom_of_class('features/support/env.rb', reindent(%Q{
-    Dir[File.expand_path(File.join(RAILS_ROOT, 'spec','support','**','*.rb'))].each {|f| require f}    
+  
+  in_root do
+    File.open(File.join('config', 'environments', 'cucumber.rb')) do |file|
+      file.each do |line|
+        if line =~ /config\.gem/
+          add_to_bottom_of_file('config/environments/test.rb', "\n#{line.strip}\n")
+        end
+      end
+    end
+  end
+
+  file('features/support/additional_env_requires.rb', reindent(%Q{
+    require 'email_spec/cucumber'
+    require "spec/mocks"
+
+    Dir["#{'#{RAILS_ROOT}'}/spec/support/**/*.rb"].each {|f| require f}
+
+    ActionMailer::Base.default_url_options[:host] = 'example.com'
+
+    Before do
+      Delayed::Job.delete_all
+      $rspec_mocks ||= Spec::Mocks::Space.new
+    end
+
+    After do
+      begin
+        $rspec_mocks.verify_all
+      ensure
+        $rspec_mocks.reset_all
+      end
+    end
   }))
+  
   
   file('features/step_definitions/step_helpers.rb', reindent(%Q{
     module StepHelpers
@@ -320,35 +374,77 @@ git_commit_all 'Added cucumber for acceptance testing.' do
 
     World(StepHelpers)
   }))
+  
+  file('features/step_definitions/delayed_job_steps.rb', reindent(%Q{
+    When 'the system processes jobs' do
+      last_count = nil
+      while Delayed::Job.count > 0 && Delayed::Job.count != last_count
+        last_count = Delayed::Job.count
+        Delayed::Worker.logger = nil
+        worker = Delayed::Worker.new(:quiet => true)
+        worker.work_off
+      end
+      Delayed::Job.all.should == []
+    end
+  }))
+  
+  file('features/step_definitions/debug_steps.rb', reindent(%Q{
+    Then /^(I )?open IRB$/i do |optional|
+      require 'irb'
+      original_argv = ARGV
+      ARGV.replace([])
+      IRB.start
+      ARGV.replace(original_argv)
+    end
+  }))
+  
+  file('features/step_definitions/abstract_steps.rb', reindent(%Q{
+    When /^there are ([0-9]+) (.+)$/ do |num, pluralized_class_name|
+      klass = pluralized_class_name.classify.constantize
+      1.upto(num) do |i|
+        klass.create!(Factory.attributes_for(pluralized_class_name.singularize.to_sym))
+      end
+    end
+  }))
+  
+  replace_in_file('features/support/env.rb', /(ENV\["RAILS_ENV"\] \|\|\= )"cucumber"/, "\\1\"test\"")
+  
+  quiet_run 'rm config/environments/cucumber.rb'
 end
 
 git_commit_all 'Added email_spec for email testing.' do
-  # TODO:   require 'email_spec/cucumber' after the world require
-  gem 'email_spec', :env => :test
+  # TODO use gem again when the delayed job warnings are fixed.
+  # gem 'email_spec', :env => :test
+  plugin('email_spec', :git => 'git://github.com/fastestforward/email-spec.git')
   generate :email_spec
+  replace_module('features/step_definitions/email_steps.rb', reindent(%Q{
+    def current_email_address
+      @current_user.email
+    end    
+  }))
 end
 
 
 git_commit_all 'Added authlogic for application authentication.' do
   gem 'authlogic'
-  model_name = 'user'
+  self.user_model_name = 'user'
 
-  route("map.resource :#{model_name}_session")
+  route("map.resource :#{user_model_name}_session")
   
   # FIXME: this is creating resource and resources routes.
   # FIXME: should clean up any unecessary actions/views
-  generate 'rspec_controller', "#{model_name}_sessions new"
+  generate 'rspec_controller', "#{user_model_name}_sessions new"
 
-  generate(:session, "-f #{model_name}_session")  
+  generate(:session, "-f #{user_model_name}_session")  
   
-  replace_class "app/controllers/#{model_name}_sessions_controller.rb", reindent(%Q{
+  replace_class "app/controllers/#{user_model_name}_sessions_controller.rb", reindent(%Q{
     def new
-      @#{model_name}_session = #{model_name.camelcase}Session.new
+      @#{user_model_name}_session = #{user_model_name.camelcase}Session.new
     end
 
     def create
-      @#{model_name}_session = #{model_name.camelcase}Session.new(params[:#{model_name}_session])
-      if @#{model_name}_session.save
+      @#{user_model_name}_session = #{user_model_name.camelcase}Session.new(params[:#{user_model_name}_session])
+      if @#{user_model_name}_session.save
         flash[:notice] = "Login successful!"
         redirect_back_or_default root_path
       else
@@ -357,8 +453,8 @@ git_commit_all 'Added authlogic for application authentication.' do
     end
 
     def destroy
-      if current_#{model_name}_session
-        current_#{model_name}_session.destroy
+      if current_#{user_model_name}_session
+        current_#{user_model_name}_session.destroy
         flash[:notice] = "Logout successful!"
       end
       
@@ -367,43 +463,43 @@ git_commit_all 'Added authlogic for application authentication.' do
   }, 2)    
 
   # FIXME: unique and not null on email
-  generate('rspec_model', "#{model_name} email:string name:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string admin:boolean")
-  generate('rspec_controller', 'users')
-  generate('rspec_controller', 'password_resets')
-  route('map.resources :users, :only => [:show, :new, :create, :edit, :update]')
-  add_to_top_of_class File.join('app', 'models', "#{model_name}.rb"), "acts_as_authentic"
-  replace_class "app/controllers/#{model_name.pluralize}_controller.rb", reindent(%Q{
-    before_filter :require_user, :except => [:new, :create, :show]
-    before_filter :require_no_user, :only => [:new, :create]
-    before_filter :require_same_user, :only => [:edit, :update]
+  generate('rspec_model', "#{user_model_name} email:string name:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string admin:boolean verified:boolean")
+  generate('rspec_controller', user_model_name.pluralize)
+  route("map.resources :#{user_model_name.pluralize}, :except => :index")
+
+  add_to_top_of_class File.join('app', 'models', "#{user_model_name}.rb"), "acts_as_authentic"
+  replace_class "app/controllers/#{user_model_name.pluralize}_controller.rb", reindent(%Q{
+    before_filter :require_#{user_model_name}, :except => [:new, :create, :show]
+    before_filter :require_no_#{user_model_name}, :only => [:new, :create]
+    before_filter :require_same_#{user_model_name}, :only => [:edit, :update]
 
     def new
-      @#{model_name} = #{model_name.camelcase}.new
+      @#{user_model_name} = #{user_model_name.camelcase}.new
     end
 
     def create
-      @#{model_name} = #{model_name.camelcase}.new(params[:#{model_name}])
-      if @#{model_name}.save
+      @#{user_model_name} = #{user_model_name.camelcase}.new(params[:#{user_model_name}])
+      if @#{user_model_name}.save
         flash[:notice] = "Account registered!"
-        redirect_back_or_default #{model_name}_path(@#{model_name})
+        redirect_back_or_default #{user_model_name}_path(@#{user_model_name})
       else
         render :action => :new
       end
     end
 
     def show
-      @#{model_name} = #{model_name.camelize}.find(params[:id])
+      @#{user_model_name} = #{user_model_name.camelize}.find(params[:id])
     end
 
     def edit
-      @#{model_name} = current_#{model_name}
+      @#{user_model_name} = current_#{user_model_name}
     end
 
     def update
-      @#{model_name} = current_#{model_name}
-      if @#{model_name}.update_attributes(params[:#{model_name}])
+      @#{user_model_name} = current_#{user_model_name}
+      if @#{user_model_name}.update_attributes(params[:#{user_model_name}])
         flash[:notice] = "Account updated!"
-        redirect_to #{model_name}_path(@#{model_name})
+        redirect_to #{user_model_name}_path(@#{user_model_name})
       else
         render :action => :edit
       end
@@ -411,38 +507,38 @@ git_commit_all 'Added authlogic for application authentication.' do
     
     private
     
-    def require_same_user
+    def require_same_#{user_model_name}
       # TODO
-      # current_user && current_user.id == params[:id].to_i
+      # current_#{user_model_name} && current_#{user_model_name}.id == params[:id].to_i
     end
   }, 2)
   
   add_to_bottom_of_class File.join('app', 'controllers', 'application_controller.rb'), reindent("
 
-    helper_method :current_#{model_name}_session, :current_#{model_name}
+    helper_method :current_#{user_model_name}_session, :current_#{user_model_name}
 
     private
   
-    def current_#{model_name}_session
-      return @current_#{model_name}_session if defined?(@current_#{model_name}_session)
-      @current_#{model_name}_session = #{model_name.camelcase}Session.find
+    def current_#{user_model_name}_session
+      return @current_#{user_model_name}_session if defined?(@current_#{user_model_name}_session)
+      @current_#{user_model_name}_session = #{user_model_name.camelcase}Session.find
     end
 
-    def current_#{model_name}
-      return @current_#{model_name} if defined?(@current_#{model_name})
-      @current_#{model_name} = current_#{model_name}_session && current_#{model_name}_session.#{model_name}
+    def current_#{user_model_name}
+      return @current_#{user_model_name} if defined?(@current_#{user_model_name})
+      @current_#{user_model_name} = current_#{user_model_name}_session && current_#{user_model_name}_session.#{user_model_name}
     end
 
-    def require_#{model_name}
-      unless current_#{model_name}
+    def require_#{user_model_name}
+      unless current_#{user_model_name}
         store_location
         flash[:notice] = \"You must be logged in to access this page\"
-        redirect_to new_#{model_name}_session_url
+        redirect_to new_#{user_model_name}_session_url
       end
     end
 
-    def require_no_#{model_name}
-      if current_#{model_name}
+    def require_no_#{user_model_name}
+      if current_#{user_model_name}
         store_location
         flash[:notice] = \"You must be logged out to access this page\"
         redirect_to root_path
@@ -459,56 +555,59 @@ git_commit_all 'Added authlogic for application authentication.' do
     end  
   ", 2)
 
-  file 'app/views/user_sessions/new.html.erb', reindent(%Q{
+  file "app/views/#{user_model_name}_sessions/new.html.erb", reindent(%Q{
     <%= title 'Login' %>
 
-    <% semantic_form_for(@#{model_name}_session, :url => user_session_path) do |f| %>
+    <% semantic_form_for(@#{user_model_name}_session, :url => #{user_model_name}_session_path) do |f| %>
       <%= f.inputs :email, :password %>
       <% f.buttons do %>
-        <%= f.commit_button 'Login' %>
+        <%= f.commit_button 'Login' %> 
+        <li>
+          <%= link_to 'Forgot Password?', new_password_reset_path %>
+        </li>
       <% end %>
     <% end %>
   })
     
   add_to_bottom_of_class 'spec/spec_helper.rb', reindent(%Q{
-    def login_as(user)
-      controller.stub!(:current_user).and_return(user)
+    def login_as(#{user_model_name})
+      controller.stub!(:current_#{user_model_name}).and_return(#{user_model_name})
     end
   })
   
   # TODO map.resources :users => map.resources :users, :except => :destroy
   
-  replace_describe 'spec/models/user_spec.rb', "\n"
+  replace_describe "spec/models/#{user_model_name}_spec.rb", "\n"
   
-  file 'spec/controllers/users_controller_spec.rb', reindent(%Q{
+  file "spec/controllers/#{user_model_name.pluralize}_controller_spec.rb", reindent(%Q{
     require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-    describe UsersController do
+    describe #{user_model_name.camelcase.pluralize}Controller do
 
-      def mock_user(stubs={})
-        @mock_user ||= mock_model(User, stubs)
+      def mock_#{user_model_name}(stubs={})
+        @mock_#{user_model_name} ||= mock_model(#{user_model_name.camelcase}, stubs)
       end
 
       describe "GET show" do
-        it "assigns the requested user as @user" do
-          User.should_receive(:find).with("37").and_return(mock_user)
+        it "assigns the requested #{user_model_name} as @#{user_model_name}" do
+          #{user_model_name.camelcase}.should_receive(:find).with("37").and_return(mock_#{user_model_name})
           get :show, :id => "37"
-          assigns[:user].should equal(mock_user)
+          assigns[:#{user_model_name}].should equal(mock_#{user_model_name})
         end
       end
 
       describe "GET new" do
         describe "while logged out" do
-          it "assigns a new user as @user" do
-            User.should_receive(:new).and_return(mock_user)
+          it "assigns a new #{user_model_name} as @#{user_model_name}" do
+            #{user_model_name.camelcase}.should_receive(:new).and_return(mock_#{user_model_name})
             get :new
-            assigns[:user].should equal(mock_user)
+            assigns[:user].should equal(mock_#{user_model_name})
           end
         end
 
         describe "while logged in" do
           before(:each) do
-            login_as mock_user
+            login_as mock_#{user_model_name}
           end
 
           it "should redirect to root" do
@@ -520,20 +619,20 @@ git_commit_all 'Added authlogic for application authentication.' do
 
       describe "GET edit" do
         describe "while logged out" do
-          it "should redirect the user to login" do
+          it "should redirect the #{user_model_name} to login" do
             get :edit, :id => "37"
-            response.should redirect_to(new_user_session_path)
+            response.should redirect_to(new_#{user_model_name}_session_path)
           end
         end
 
         describe "while logged in" do
           before(:each) do
-            login_as mock_user
+            login_as mock_#{user_model_name}
           end
 
-          it "assigns the current user as @user" do
+          it "assigns the current #{user_model_name} as @#{user_model_name}" do
             get :edit
-            assigns[:user].should equal(mock_user)
+            assigns[:#{user_model_name}].should equal(mock_#{user_model_name})
           end
         end
       end
@@ -541,34 +640,34 @@ git_commit_all 'Added authlogic for application authentication.' do
       describe "POST create" do
         describe "while logged out" do
           describe "with valid params" do
-            it "assigns a newly created user as @user" do
+            it "assigns a newly created #{user_model_name} as @#{user_model_name}" do
               attribites = {
                 "email" => 'test@example.com',
                 "password" => 'testing',
                 "password_confirmation" => 'testing',
               }
-              User.should_receive(:new).with(attribites ).and_return(mock_user(:save => true))
-              post :create, :user => attribites
-              assigns[:user].should equal(mock_user)
+              #{user_model_name.camelcase}.should_receive(:new).with(attribites ).and_return(mock_#{user_model_name}(:save => true))
+              post :create, :#{user_model_name} => attribites
+              assigns[:#{user_model_name}].should equal(mock_#{user_model_name})
             end
 
-            it "redirects to the created user" do
-              User.stub!(:new).and_return(mock_user(:save => true))
-              post :create, :user => {}
-              response.should redirect_to(user_url(mock_user))
+            it "redirects to the created #{user_model_name}" do
+              #{user_model_name.camelcase}.stub!(:new).and_return(mock_#{user_model_name}(:save => true))
+              post :create, :#{user_model_name} => {}
+              response.should redirect_to(#{user_model_name}_url(mock_#{user_model_name}))
             end
           end
 
           describe "with invalid params" do
-            it "assigns a newly created but unsaved user as @user" do
-              User.stub!(:new).with({'these' => 'params'}).and_return(mock_user(:save => false))
-              post :create, :user => {:these => 'params'}
-              assigns[:user].should equal(mock_user)
+            it "assigns a newly created but unsaved #{user_model_name} as @#{user_model_name}" do
+              #{user_model_name.camelcase}.stub!(:new).with({'these' => 'params'}).and_return(mock_#{user_model_name}(:save => false))
+              post :create, :#{user_model_name} => {:these => 'params'}
+              assigns[:user].should equal(mock_#{user_model_name})
             end
 
             it "re-renders the 'new' template" do
-              User.stub!(:new).and_return(mock_user(:save => false))
-              post :create, :user => {}
+              User.stub!(:new).and_return(mock_#{user_model_name}(:save => false))
+              post :create, :#{user_model_name} => {}
               response.should render_template('new')
             end
           end
@@ -576,11 +675,11 @@ git_commit_all 'Added authlogic for application authentication.' do
 
         describe "while logged in" do
           before(:each) do
-            login_as mock_user
+            login_as mock_#{user_model_name}
           end
 
           it "should redirect to root" do
-            post :create, :user => {}
+            post :create, :#{user_model_name} => {}
             response.should redirect_to(root_path)
           end
         end
@@ -588,42 +687,42 @@ git_commit_all 'Added authlogic for application authentication.' do
 
       describe "PUT udpate" do
         describe "while logged out" do
-          it "should redirect the user to login" do
+          it "should redirect the #{user_model_name} to login" do
             put :update, :id => "1"
-            response.should redirect_to(new_user_session_path)
+            response.should redirect_to(new_#{user_model_name}_session_path)
           end
         end
 
         describe "while logged in" do
           before(:each) do
-            login_as(mock_user)
-            mock_user.stub!(:update_attributes).and_return(true)
+            login_as(mock_#{user_model_name})
+            mock_#{user_model_name}.stub!(:update_attributes).and_return(true)
           end
 
-          it "updates the current user" do
-            mock_user.should_receive(:update_attributes).with({'email' => 'jerk@example.com'})
+          it "updates the current #{user_model_name}" do
+            mock_#{user_model_name}.should_receive(:update_attributes).with({'email' => 'jerk@example.com'})
             put :update, :id => "37", :user => {:email => 'jerk@example.com'}
           end
 
-          it "assigns the current user as @user" do
+          it "assigns the current #{user_model_name} as @#{user_model_name}" do
             put :update, :id => "1"
-            assigns[:user].should equal(mock_user)
+            assigns[:#{user_model_name}].should equal(mock_#{user_model_name})
           end
 
           describe "with valid params" do
             before(:each) do
-              mock_user.stub!(:update_attributes).and_return(true)
+              mock_#{user_model_name}.stub!(:update_attributes).and_return(true)
             end
 
-            it "redirects to the user" do
+            it "redirects to the #{user_model_name}" do
               put :update, :id => "1"
-              response.should redirect_to(user_url(mock_user))
+              response.should redirect_to(#{user_model_name}_url(mock_#{user_model_name}))
             end
           end
 
           describe "with invalid params" do
             before(:each) do
-              mock_user.stub!(:update_attributes).and_return(false)
+              mock_#{user_model_name}.stub!(:update_attributes).and_return(false)
             end
 
             it "re-renders the 'edit' template" do
@@ -637,12 +736,12 @@ git_commit_all 'Added authlogic for application authentication.' do
     end
   })
 
-  file("app/views/#{model_name.pluralize}/_form.html.erb", reindent(%Q{
+  file("app/views/#{user_model_name.pluralize}/_form.html.erb", reindent(%Q{
     <% if !defined?(commit_button_text) %>
       <% commit_button_text = 'Save' %>
     <% end %>
 
-    <% semantic_form_for(@user) do |f| %>
+    <% semantic_form_for(@#{user_model_name}) do |f| %>
       <%= f.inputs :email, :password, :password_confirmation %>
       <% f.buttons do %>
         <%= f.commit_button commit_button_text %>
@@ -650,7 +749,7 @@ git_commit_all 'Added authlogic for application authentication.' do
     <% end %>    
   }))
   
-  file("app/views/#{model_name.pluralize}/new.html.erb", reindent(%Q{
+  file("app/views/#{user_model_name.pluralize}/new.html.erb", reindent(%Q{
 
     <%= title 'Register' %>
 
@@ -658,30 +757,31 @@ git_commit_all 'Added authlogic for application authentication.' do
 
   }))
 
-  file("app/views/#{model_name.pluralize}/edit.html.erb", reindent(%Q{
+  file("app/views/#{user_model_name.pluralize}/edit.html.erb", reindent(%Q{
 
     <%= title 'Update' %>
 
     <%= render :partial => 'form' %>
   }))
 
-  file("app/views/#{model_name.pluralize}/show.html.erb", reindent(%Q{
+  file("app/views/#{user_model_name.pluralize}/show.html.erb", reindent(%Q{
     <p>
       <b>Email:</b>
-      <%=h @user.email %>
+      <%=h @#{user_model_name}.email %>
     </p>
 
 
-    <%= link_to 'Edit', edit_user_path(@user) %> |
-    <%= link_to 'Back', users_path %>
+    <%= link_to 'Edit', edit_#{user_model_name}_path(@#{user_model_name}) %> |
+    <%= link_to 'Back', #{user_model_name.pluralize}_path %>
   }))
+  
   
   add_to_top_of_file('spec/support/factories.rb', reindent(%Q{
     Factory.sequence :email do |n|
       "person#{'#{n}'}@example.com" 
     end
 
-    Factory.define :#{model_name} do |f|
+    Factory.define :#{user_model_name} do |f|
       f.name { Faker::Name.name }
       f.email do |u|
         "#{'#{u.name.downcase.gsub(/\W/, \'\')}'}@example.com"
@@ -693,28 +793,28 @@ git_commit_all 'Added authlogic for application authentication.' do
   
   add_to_bottom_of_module('features/step_definitions/step_helpers.rb', reindent(%Q{
   
-    def find_users(hashes)
+    def find_#{user_model_name.pluralize}(hashes)
       hashes.collect do |hash|
-        value = hash.delete("user")
+        value = hash.delete("#{user_model_name}")
         if !value.blank?
-          user = User.find_or_create_by_name(value) do |u| 
-            u.attributes = Factory.attributes_for(:user).merge(:name => value) 
+          #{user_model_name} = #{user_model_name.camelcase}.find_or_create_by_name(value) do |u| 
+            u.attributes = Factory.attributes_for(:#{user_model_name}).merge(:name => value) 
           end
-          { :user => user }.reverse_merge(hash)
+          { :#{user_model_name} => #{user_model_name} }.reverse_merge(hash)
         else
           hash
         end
       end
     end
 
-    def find_user_ids(hashes)
+    def find_#{user_model_name}_ids(hashes)
       hashes.collect do |hash|
-        value = hash.delete("user")
+        value = hash.delete("#{user_model_name}")
         if !value.blank?
-          user_id = User.find_or_create_by_name(value) do |u| 
-            u.attributes = Factory.attributes_for(:user).merge(:name => value) 
+          #{user_model_name}_id = #{user_model_name.camelcase}.find_or_create_by_name(value) do |u| 
+            u.attributes = Factory.attributes_for(:#{user_model_name}).merge(:name => value) 
           end.id
-          { :user_id => user_id }.reverse_merge(hash)
+          { :#{user_model_name}_id => #{user_model_name}_id }.reverse_merge(hash)
         else
           hash
         end
@@ -723,20 +823,20 @@ git_commit_all 'Added authlogic for application authentication.' do
   
   }))
   
-  file('features/step_definitions/user_steps.rb', reindent(%Q{
+  file("features/step_definitions/#{user_model_name}_steps.rb", reindent(%Q{
     Given /^I am signed up as "([^\\"]*)"$/ do |name|
-      @current_user = Factory(:user, :name => name)
+      @current_#{user_model_name} = Factory(:#{user_model_name}, :name => name)
     end
 
-    Given /^the following users:$/ do |table|
+    Given /^the following #{user_model_name.pluralize}:$/ do |table|
       table.hashes.each do |attrs|
         attrs = attrs.dup 
-        Factory(:user, attrs)
+        Factory(:#{user_model_name}, attrs)
       end
     end
 
-    Then /^I should see the following users:$/ do |expected_users_table|
-      expected_users_table.diff!(textify_table_at('table'))
+    Then /^I should see the following #{user_model_name.pluralize}:$/ do |expected_#{user_model_name.pluralize}_table|
+      expected_#{user_model_name.pluralize}_table.diff!(textify_table_at('table tr'))
     end
 
     Given /^I am logged in as "(.*)"$/ do |name|
@@ -745,54 +845,54 @@ git_commit_all 'Added authlogic for application authentication.' do
     end
 
     Given /^I login as "(.*)" with password "(.*)"$/ do |name, password|
-      @current_user = User.find_or_create_by_name(name) do |u|
+      @current_#{user_model_name} = #{user_model_name.camelcase}.find_or_create_by_name(name) do |u|
         # Attrs might be protected
-        attrs = Factory.attributes_for(:user, :name => name, :password => password)
+        attrs = Factory.attributes_for(:#{user_model_name}, :name => name, :password => password)
         u.attributes = attrs
         u.name = name
         u.password = password
       end
-      visit new_user_session_path
-      fill_in('email', :with => @current_user.email)
+      visit new_#{user_model_name}_session_path
+      fill_in('email', :with => @current_#{user_model_name}.email)
       fill_in('password', :with => password)
       click_button('Login')  
     end
 
-    Given /^there is a user named "([^\\"]*)"$/ do |name|
-      user = User.find_or_create_by_name(name) do |u|
+    Given /^there is a #{user_model_name} named "([^\\"]*)"$/ do |name|
+      #{user_model_name} = #{user_model_name.camelcase}.find_or_create_by_name(name) do |u|
         # Attrs might be protected
-        attrs = Factory.attributes_for(:user, :name => name)
+        attrs = Factory.attributes_for(:#{user_model_name}, :name => name)
         u.attributes = attrs
         u.name = name
         u.password = attrs[:password]
         u.password_confirmation = attr[:password]
       end
-      user.valid?.should == true
+      #{user_model_name}.valid?.should == true
     end
 
     Given /^I am logged in as an admin$/ do
       Given 'I am logged in as "MrAdmin"'
-      @current_user.reload
-      @current_user.admin = true
-      @current_user.save
+      @current_#{user_model_name}.reload
+      @current_#{user_model_name}.admin = true
+      @current_#{user_model_name}.save
     end
 
-    Given /^I am an? anonymous user$/ do
+    Given /^I am an? anonymous #{user_model_name}$/ do
     end
 
-    Given /^I am a logged in user$/ do
-      Given 'I am logged in as "SomeUser"'
+    Given /^I am a logged in #{user_model_name}$/ do
+      Given 'I am logged in as "Some#{user_model_name.camelcase}"'
     end
     
   }))
   
-  file('features/manage_users.feature', reindent(%Q{
-    Feature: Users
+  file("features/manage_#{user_model_name.pluralize}.feature", reindent(%Q{
+    Feature: #{user_model_name.titlecase}
       In order to keep information specific to himself
-      a user
+      a #{user_model_name}
       wants to signup and manage their personal information
 
-      Scenario: A user can signup
+      Scenario: A #{user_model_name} can signup
         Given I am on the home page
         When I follow "Register"
         And I fill in "email" with "kris@example.com"
@@ -801,7 +901,7 @@ git_commit_all 'Added authlogic for application authentication.' do
         And I press "Register"
         Then I should see "Account registered"
 
-      Scenario: A user can login with their email address
+      Scenario: A #{user_model_name} can login with their email address
         Given I am signed up as "Kris"
         And I am on the home page
         When I follow "Login"
@@ -810,7 +910,7 @@ git_commit_all 'Added authlogic for application authentication.' do
         And I press "Login"
         Then I should see "Login successful"
 
-      Scenario: A user can login with their email address with the wrong case
+      Scenario: A #{user_model_name} can login with their email address with the wrong case
         Given I am signed up as "Kris"
         And I am on the home page
         When I follow "Login"
@@ -819,16 +919,240 @@ git_commit_all 'Added authlogic for application authentication.' do
         And I press "Login"
         Then I should see "Login successful"
 
-      Scenario: A user can logout
+      Scenario: A #{user_model_name} can logout
         Given I am logged in as "Kris"
         When I follow "Logout"
         Then I should see "Logout successful"
+ 
+  }))
+end
+
+git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
+  post_instruction("Update email templates and attributes: app/models/#{user_model_name}_notifier.rb")
+
+  generate('mailer', "#{user_model_name}_notifier signup password_reset_instructions verify_email")
+  
+  add_to_top_of_class('app/controllers/application_controller.rb', reindent(%Q{
+    before_filter :set_action_mailer_host
+  }))
+  
+  add_private_method_to_file('app/controllers/application_controller.rb', reindent(%Q{
+    def set_action_mailer_host
+      ActionMailer::Base.default_url_options[:host] = request.host
+    end
+  }))
+
+  replace_class("app/models/#{user_model_name}_notifier.rb", reindent(%Q{
+    def signup(#{user_model_name})
+      subject       'Thanks for signing up'
+      recipients    #{user_model_name}.email
+      from          'notifier@example.com'
+      sent_on       Time.now  
+      body       
+    end
+
+    def password_reset_instructions(#{user_model_name})
+      subject       "Password Reset Instructions"  
+      from          "notifier@example.com"
+      recipients    #{user_model_name}.email  
+      sent_on       Time.now  
+      body          :edit_password_reset_url => edit_password_reset_url(user.perishable_token)  
+    end
+
+    def verify_email(#{user_model_name})
+      subject       'Verify email address'
+      recipients    #{user_model_name}.email
+      from          'notifier@example.com'
+      sent_on       Time.now  
+      body       
+    end
+  }))
+
+  file("app/views/#{user_model_name}_notifier/password_reset_instructions.erb", reindent(%Q{
+    A request to reset your password has been made.  
+    If you did not make this request, simply ignore this email.  
+    If you did make this request just click the link below:  
+      <%= @edit_password_reset_url %>
+    If the above URL does not work try copying and pasting it into your browser.  
+    If you continue to have problem please feel free to contact us.
+  }))
+
+  file("app/views/#{user_model_name}_notifier/password_reset_instructions.html.erb", reindent(%Q{
+    <p>
+      A request to reset your password has been made.  
+      If you did not make this request, simply ignore this email.  
+      If you did make this request just click the link below:  
+      <br/><br/>
+      <%= link_to 'Reset Password', @edit_password_reset_url %>
+      </br/><br/>
+      If the above URL does not work try copying and pasting it into your browser.  
+      If you continue to have problem please feel free to contact us.
+    </p>
+  }))
+
+  file("app/views/#{user_model_name}_notifier/signup.erb", reindent(%Q{
+    Thanks for signing up!
+  }))
+
+  file("app/views/#{user_model_name}_notifier/signup.html.erb", reindent(%Q{
+    <p>
+      Thanks for signing up!
+    </p>
+  }))
+
+  file("app/views/#{user_model_name}_notifier/verify_email.erb", reindent(%Q{
+    Verify email address!
+  }))
+
+  file("app/views/#{user_model_name}_notifier/verify_email.html.erb", reindent(%Q{
+    <p>
+      Verify email address!
+    </p>
+  }))
+
+  
+end
+
+git_commit_all 'Adding password resets' do
+  generate('rspec_controller', 'password_resets')
+  route('map.resources :password_resets, :except => :destroy')
+  add_to_top_of_class('app/controllers/password_resets_controller.rb', reindent(%Q{
+    skip_before_filter :require_#{user_model_name}
+    before_filter :load_#{user_model_name}_from_perishable_token, :only => [:edit, :update]
+
+    def new
+      @user = #{user_model_name.camelcase}.new
+    end
+
+    def create
+      @#{user_model_name} = #{user_model_name.camelcase}.find_by_email(params[:#{user_model_name}][:email])
+      if @#{user_model_name}
+        @#{user_model_name}.reset_password!
+        flash[:notice] = "Instructions to reset your password have been emailed to you. Please check your email."
+        redirect_to root_path
+      else
+        flash[:error] = "No user was found with that email address"  
+        render :action => 'new'
+      end
+    end
+
+    def update
+      @#{user_model_name}.password = params[:#{user_model_name}][:password]  
+      @#{user_model_name}.force_validate_password = true
+      if @#{user_model_name}.save  
+        flash[:notice] = "Password successfully updated"  
+        redirect_to #{user_model_name}_path(@#{user_model_name})
+      else  
+        render :action => :edit
+      end
+    end
+
+    private
+
+    def load_user_from_perishable_token
+      @#{user_model_name} = #{user_model_name.camelcase}.find_using_perishable_token(params[:id])  
+      if params[:id].blank? || !@#{user_model_name}  
+        flash[:error] = %Q{
+          We're sorry, but we could not locate your account. \
+          If you are having issues try copying and pasting the URL \
+          from your email into your browser or restarting the \  
+          reset password process.
+        }
+        redirect_to root_url
+      end
+    end
     
+  }))
+  
+  file('app/views/password_resets/new.html.erb', reindent(%Q{
+    <%= title 'Reset Password' %>
+
+    <% semantic_form_for(:#{user_model_name}, :url => password_resets_path) do |f| %>
+      <%= f.inputs :email %>
+      <% f.buttons do %>
+        <%= f.commit_button 'Reset Password' %>
+      <% end %>
+    <% end %>
+  }))
+
+  file('app/views/password_resets/edit.html.erb', reindent(%Q{
+    <%= title 'Change Password' %>
+
+    <% semantic_form_for(@#{user_model_name}, :url => password_reset_path(:id => @#{user_model_name}.perishable_token)) do |f| %>
+      <%= f.inputs :password %>
+      <% f.buttons do %>
+        <%= f.commit_button 'Change Password' %>
+      <% end %>
+    <% end %>    
+  }))
+  
+  add_to_top_of_class("app/models/#{user_model_name}.rb", reindent(%Q{
+    attr_accessor :force_validate_password
+  
+    def reset_password!
+      reset_perishable_token!
+      UserNotifier.deliver_password_reset_instructions(self)
+    end
+  }))
+  
+  add_to_bottom_of_file("features/step_definitions/#{user_model_name}_steps.rb", reindent(%Q{
+    Given /^I request the edit password reset page with token "(.*)"/ do |token|
+      visit "/password_resets/#{'#{token}'}/edit"
+    end
+  }))
+
+  add_to_bottom_of_file("features/manage_#{user_model_name.pluralize}.feature", reindent(%Q{
+    Scenario: A #{user_model_name} can restore their account after forgetting their password
+      Given I am signed up as "Kris"
+      And I am on the home page
+      When I follow "Login"
+      And I follow "Forgot password?"
+      And I fill in "email" with "kris@example.com"
+      And I press "Reset Password"
+      Then I should see "Please check your email"
+      And I should receive an email
+      When I open the email
+      Then I should see "Password Reset Instructions" in the email subject
+      When I click the first link in the email
+      And I fill in "password" with "newcrazypassword"
+      And I press "Change Password"
+      Then I should see "Password successfully updated"
+      When I follow "Logout"
+      And I login as "Kris" with password "newcrazypassword"
+      Then I should see "Login successful"
+
+    Scenario Outline: A #{user_model_name} should not see the change password page if the token is like "<token>"
+      Given I request the edit password reset page with token "<token>"
+      Then I should see "We're sorry"
+      Examples:
+        | token     |
+        | not_valid |
+
+
+    Scenario Outline: A #{user_model_name} can not restore their with an invalid password
+      Given I am signed up as "Kris"
+      And I am on the home page
+      When I follow "Login"
+      And I follow "Forgot password?"
+      And I fill in "email" with "kris@example.com"
+      And I press "Reset Password"
+      Then I should see "Please check your email"
+      And I should receive an email
+      When I open the email
+      Then I should see "Password Reset Instructions" in the email subject
+      When I click the first link in the email
+      And I fill in "password" with "<password>"
+      And I press "Change Password"
+      Then I should not see "Password successfully updated"
+      Examples:
+        | password  |
+        |           |
+        | tny       |
   }))
 end
 
 if yes?('Add image uploads?')
-  git_commit_all 'Add image uploads to users' do
+  git_commit_all "Add image uploads to #{user_model_name.pluralize}" do
     post_instruction('Configure Carrierwave: config/initializers/carrierwave.rb')
     post_instruction('Create the s3 buckets')
     generate('uploader', 'Image')
@@ -965,7 +1289,7 @@ if yes?('Add image uploads?')
       private
       
       def scope
-        current_user.images
+        current_#{user_model_name}.images
       end
     }))
 
