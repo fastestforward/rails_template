@@ -947,7 +947,7 @@ git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
     before_filter :set_action_mailer_host
   }))
   
-  add_private_method_to_file('app/controllers/application_controller.rb', reindent(%Q{
+  add_to_bottom_of_class('app/controllers/application_controller.rb', reindent(%Q{
     def set_action_mailer_host
       ActionMailer::Base.default_url_options[:host] = request.host
     end
