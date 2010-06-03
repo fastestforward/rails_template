@@ -1071,7 +1071,7 @@ git_commit_all 'Most recent annotations.' do
   run 'annotate'
 end
 
-git_commit_all 'Added Google Analyitcs tracking.' do
+git_commit_all 'Added Google Analytics tracking.' do
   gem 'google_analytics'
   initializer 'google_analytics.rb' do
     "Rubaidh::GoogleAnalytics.tracker_id = 'fake_tracker_id'"
