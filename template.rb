@@ -229,6 +229,7 @@ git_commit_all 'Added rspec and rspec-rails.' do
   gem 'rspec', :lib => 'spec', :env => :test
   gem 'rspec-rails', :lib => 'spec/rails', :env => :test
   generate(:rspec)
+  file('spec/support/factories.rb', '')
 end
 
 git_commit_all 'Added remarkable to spec simple things simply.' do
@@ -238,6 +239,9 @@ end
 git_commit_all 'Added cucumber for acceptance testing.' do
   gem 'cucumber', :env => :test
   generate(:cucumber)
+  add_to_bottom_of_class('features/support/env.rb', reindent(%Q{
+    Dir[File.expand_path('RAILS_ROOT, 'spec','support','**','*.rb'))].each {|f| require f}    
+  }))
 end
 
 git_commit_all 'Added email_spec for email testing.' do
@@ -602,6 +606,7 @@ end
 
 if yes?('Add image uploads?')
   git_commit_all 'Add image uploads to users' do
+    post_instructions('Configure Carrierwave: config/initializers/carrierwave.rb')
     generate('uploader', 'Image')
     generate('rspec_model', 'image imageable_id:integer imageable_type:string file:string')
     replace_class('app/uploaders/image_uploader.rb', reindent(%Q{
