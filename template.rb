@@ -794,11 +794,9 @@ git_commit_all 'Added authlogic for application authentication.' do
     <p>
       <b>Email:</b>
       <%=h @#{user_model_name}.email %>
-    </p>
+    </p><br />
 
-
-    <%= link_to 'Edit', edit_#{user_model_name}_path(@#{user_model_name}) %> |
-    <%= link_to 'Back', #{user_model_name.pluralize}_path %>
+    <%= link_to 'Edit', edit_#{user_model_name}_path(@#{user_model_name}) %>
   }))
   
   
