@@ -49,7 +49,7 @@ def replace_module(file, data = nil, &block)
 end
 
 def replace_describe(file, data = nil, &block)
-  replace_in_file(file, /^(describe\s+.*?$).*^(end)/m, data, &block)
+  replace_in_file(file, /^(describe\s+.*?$).*^(end)/m, "\\1\n#{data}\\2", &block)
 end
 
 def replace_in_file(file, regex, data = nil, &block)
@@ -629,13 +629,7 @@ git_commit_all 'Added authlogic for application authentication.' do
   
   replace_describe "spec/models/#{user_model_name}_spec.rb", "\n"
   
-  file "spec/controllers/#{user_model_name.pluralize}_controller_spec.rb", reindent(%Q{
-    require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
-
-    describe #{user_model_name.camelcase.pluralize}Controller do
-
-    end
-  })
+  replace_describe "spec/controllers/#{user_model_name.pluralize}_controller_spec.rb", "\n"
 
   file("app/views/#{user_model_name.pluralize}/_form.html.erb", reindent(%Q{
     <% if !defined?(commit_button_text) %>
