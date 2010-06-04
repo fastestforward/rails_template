@@ -1352,12 +1352,19 @@ git_commit_all 'Basic application layout.' do
         <!--[if lt IE 8]>
           <%= stylesheet_link_tag 'ie' %>
         <![endif]-->
-        <%= javascript_include_tag 'jquery.min.js', 'userscore-min.js', 'application' %>    
+        <%= javascript_include_tag 'jquery.min.js', 'underscore-min.js', 'application' %>    
         <%= yield :head %>
       </head>
       <body>
         <div id="bg">
-          <%= system_status if current_user.try(:admin?) || Rails.env.development? %>
+          <% if current_user.try(:admin?) || Rails.env.development? %>
+            <%= system_status %>
+            <style type="text/css">
+              #container {
+                margin-top: 40px
+              }
+            </style>
+          <% end %>
           <div id="header-bg"></div>
           <div id="body-bg"></div>
         </div>
@@ -1507,6 +1514,57 @@ git_commit_all 'Basic application layout.' do
     #system_status .overview {
       float: left;
     }
+
+    input[type="text"], form.formtastic ol li input[type="text"], form.formtastic ol li input[type="password"], form.formtastic ol li textarea {
+      padding: 2px 2px 2px 6px;
+      background: #fff;
+      border: 1px solid #D1CBCB;
+      font-size: 16px;
+      color: #444;
+    }
+    form.formtastic {
+      background: #f7f7f7;
+      border-radius: 5px;
+      -khtml-border-radius: 5px;
+      -webkit-border-radius: 5px;
+      -moz-border-radius: 5px;
+      padding: 10px;
+      margin-top: 20px;
+    }
+    form.formtastic fieldset ol li.password input, form.formtastic fieldset ol li.string input {
+      width: 270px;
+      max-width: 270px;
+    }
+    body form.formtastic fieldset ol li.text textarea {
+      width: 98%;
+    }
+    form.formtastic fieldset ol li {
+      margin-bottom: 10px;
+    }
+    form.formtastic fieldset.buttons {
+      padding: 0;
+    }
+    form.formtastic .buttons a {
+      float: right;
+      padding-top: 10px;
+    }
+    form.formtastic .buttons input, input.button {
+      margin-top: 5px;
+      border: 1px solid #ccc !important;
+      padding: 2px 5px !important;
+      font-size: 18px;
+      background: #E3E3E3 !important;
+    }
+    form.formtastic fieldset ol li label {
+      display: block;
+      width: auto;
+    }
+    .inputs label, .inputs .label {
+      font-size: 16px;
+      color: #666;
+      padding-bottom: 5px;
+    }
+
   }, 0)
   
   file "public/stylesheets/formtastic_changes.css", reindent(%Q{
