@@ -1336,8 +1336,9 @@ end
 # end
 
 git_commit_all 'Basic application layout.' do
-  file('public/javascript', open('http://github.com/documentcloud/underscore/raw/master/underscore-min.js').read)
-  file('public/javascript', open('http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js').read)
+  file('public/images/content_bg.png', open('http://github.com/fastestforward/rails_template/raw/rails2/assets/images/content_bg.png').read)
+  file('public/javascripts/underscore-min.js', open('http://github.com/documentcloud/underscore/raw/master/underscore-min.js').read)
+  file('public/javascripts/jquery.min.js', open('http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js').read)
   file "app/views/layouts/application.html.erb", reindent(%q{
     <!DOCTYPE html>
     <html>
