@@ -246,10 +246,31 @@ git_commit_all 'Added faker for seed data generation.' do
   
   file 'lib/tasks/app.rake', reindent(%q{
     namespace :app do
-      task :seed => :environment do
+      task :reset => %w(db:drop db:create db:schema:load db:migrate app:populate) do
+      task :seed => %w(seed:users)
 
+      namespace :seed do
+        desc 'Create default user accounts'
+        task :users => :environment do
+          require 'spec/support/factories'
+          $stdout.sync = true
+
+          print "Inserting Users"
+          users = [
+            ['Elijah Miller',  'elijah.miller@gmail.com'             ,  true],
+            ['Kris Chambers',  'kristopher.chambers@gmail.com'       ,  true],
+            ['Chris Zelenak',  'netshade@gmail.com'                  ,  true],
+            ['Matt Hassurder', 'matthew.hassfurder@gmail.com'        ,  true],
+          ]
+          users.each do |name, email, admin|
+            user = Factory(:user, :admin => true, :name => name, :email => email, :admin => admin)
+            user.update_attributes :persistence_token => Digest::MD5::hexdigest(email) * 4
+            print "."
+          end
+          puts " done.\n"
+        end
       end
-      
+
       task :populate => :seed do
         
       end
@@ -1831,5 +1852,8 @@ if yes?('Deploy to Heroku?')
   run 'heroku rake db:migrate' 
   run 'heroku open'
 end
+
+puts "Seeding the application..."
+rake 'app:seed'
 
 show_post_instructions
