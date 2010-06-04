@@ -246,7 +246,7 @@ git_commit_all 'Added faker for seed data generation.' do
   
   file 'lib/tasks/app.rake', reindent(%q{
     namespace :app do
-      task :reset => %w(db:drop db:create db:schema:load db:migrate app:populate) do
+      task :reset => %w(db:drop db:create db:schema:load db:migrate app:populate)
       task :seed => %w(seed:users)
 
       namespace :seed do
