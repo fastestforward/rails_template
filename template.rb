@@ -391,6 +391,10 @@ git_commit_all 'Added cucumber for acceptance testing.' do
       IRB.start
       ARGV.replace(original_argv)
     end
+
+    When '(I )?save and open the page' do
+      save_and_open_page
+    end
   }))
   
   file('features/step_definitions/abstract_steps.rb', reindent(%Q{
