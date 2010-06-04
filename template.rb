@@ -449,6 +449,7 @@ git_commit_all 'Added authlogic for application authentication.' do
         flash[:notice] = "Login successful!"
         redirect_back_or_default root_path
       else
+        flash.now[:alert] = 'Unable to login.'
         render :action => :new
       end
     end
@@ -1041,7 +1042,7 @@ git_commit_all 'Adding password resets' do
         flash[:notice] = "Instructions to reset your password have been emailed to you. Please check your email."
         redirect_to root_path
       else
-        flash[:error] = "No user was found with that email address"  
+        flash.now[:alert] = "No user was found with that email address"
         render :action => 'new'
       end
     end
@@ -1062,7 +1063,7 @@ git_commit_all 'Adding password resets' do
     def load_user_from_perishable_token
       @#{user_model_name} = #{user_model_name.camelcase}.find_using_perishable_token(params[:id])  
       if params[:id].blank? || !@#{user_model_name}  
-        flash[:error] = %Q{
+        flash[:alert] = %Q{
           We're sorry, but we could not locate your account. \
           If you are having issues try copying and pasting the URL \
           from your email into your browser or restarting the \  
@@ -1494,6 +1495,27 @@ git_commit_all 'Basic application layout.' do
       text-decoration: inherit;
     }
 
+    #flash div {
+      border: 1px solid #bbb;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+      -moz-box-shadow: 0 0 5px #ccc;
+      -webkit-box-shadow: 0 0 5px #ccc;
+      padding: 10px 25px;
+      background: #fff;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #flash .alert {
+      border-color: #a00;
+      background: #f55;
+    }
+
+    #flash .notice {
+      border-color: #0a0;
+      background: #5f5;
+    }
+
     #content {
       border: 1px solid #bbb;
       -moz-border-radius: 10px;
@@ -1607,7 +1629,6 @@ git_commit_all 'Basic application layout.' do
   ".strip.split("\n")
 
 
-  # TODO: style flash messages
   file 'app/helpers/title_helper.rb', reindent(%Q{
     module TitleHelper
       def page_and_site_title
@@ -1648,7 +1669,7 @@ git_commit_all 'Basic application layout.' do
   add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%q{
 
     def flash_messages
-      types = [:error, :notice, :warning]
+      types = [:alert, :notice]
       if types.any? { |t| !flash[t].blank? }
         messages = types.collect do |type|
           unless flash[type].blank?
