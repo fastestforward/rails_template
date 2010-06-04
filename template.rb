@@ -1034,7 +1034,7 @@ git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
   
 end
 
-git_commit_all 'Adding password resets' do
+git_commit_all 'Adding password reset.' do
   generate('rspec_controller', 'password_resets')
   route('map.resources :password_resets, :except => :destroy')
   add_to_top_of_class('app/controllers/password_resets_controller.rb', reindent(%Q{
