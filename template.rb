@@ -1349,21 +1349,27 @@ git_commit_all 'Basic application layout.' do
         <!--[if lt IE 8]>
           <%= stylesheet_link_tag 'ie' %>
         <![endif]-->
-        <%= javascript_include_tag 'jquery.min.js', 'userscore-min.js', 'application' %>
+        <%= javascript_include_tag 'jquery.min.js', 'userscore-min.js', 'application' %>    
         <%= yield :head %>
       </head>
       <body>
-        <%= system_status if current_user.try(:admin?) || Rails.env.development? %>
+        <div id="bg">
+          <%= system_status if current_user.try(:admin?) || Rails.env.development? %>
+          <div id="header-bg"></div>
+          <div id="body-bg"></div>
+        </div>
         <div id="container">
-          <h1><%= link_to h(site_title), '/' %></h1>
-          <ul id="user_actions">
-            <% if current_user %>
-              <%= link_to 'Logout', user_session_path, :method => :delete %>
-            <% else %> 
-              <%= link_to 'Login', new_user_session_path %>
-              <%= link_to 'Register', new_user_path %>
-            <% end %>
-          </ul>
+          <div id="header">
+            <h1><%= link_to h(site_title), '/' %></h1>
+            <ul id="user_actions">
+              <% if current_user %>
+                <%= link_to 'Logout', user_session_path, :method => :delete %>
+              <% else %> 
+                <%= link_to 'Login', new_user_session_path %>
+                <%= link_to 'Signup', new_user_path %>
+              <% end %>
+            </ul>
+          </div>
 
           <%= flash_messages %>
 
@@ -1379,80 +1385,85 @@ git_commit_all 'Basic application layout.' do
         </script>
       </body>
     </html>
+
   })
   
   file "public/stylesheets/application.css", reindent(%Q{
     html {
-      background: #fafafa;
+      background: #fff;
     }
     body {
-      background: url(http://grawesome.heroku.com/ddd/fafafa/8x256.png) repeat-x;
-    }
-
-    #container {
-      position: relative;
-      width: 960px;
-      margin: 0 auto;
+      font: 14px/100% Geneva, Helvetica, Arail;
+      color: #444;
     }
     h1 {
       font-size: 300%;
       padding: 15px 0 5px 0;
     }
+    h2 {
+      font-size: 200%;
+    }
     h1 a {
       color: inherit;
       text-decoration: inherit;
     }
-
-    #flash div {
-      border: 1px solid #bbb;
-      -moz-border-radius: 10px;
-      -webkit-border-radius: 10px;
-      -moz-box-shadow: 0 0 5px #ccc;
-      -webkit-box-shadow: 0 0 5px #ccc;
-      padding: 10px 25px;
-      background: #fff;
-      text-align: center;
-      margin-bottom: 10px;
+    #bg {
+      position: absolute;
+      top: 0;
+      z-index: 0;
+      width: 100%
     }
-    #flash .alert {
-      border-color: #a00;
-      background: #f55;
+    #header-bg {
+      height: 100px;
+      background: #2d2d2d;
     }
-
-    #flash .notice {
-      border-color: #0a0;
-      background: #5f5;
+    #body-bg {
+      border-top: 1px solid #1b5983;
+      border-bottom: 1px solid #35536f;
+      height: 200px;
+      width: 100%;
+      background: -moz-linear-gradient(90deg, #3e77ad, #184773); 
+      background: -webkit-gradient(linear, left top, left bottom, from(#3e77ad), to(#184773)); 
     }
-
+    #container {
+      position: relative;
+      width: 960px;
+      margin: 0 auto;
+    }
+    #header {
+      height: 100px;
+    }
+    #header h1 {
+      color: #ddd;
+      padding-top: 50px;
+    }
     #content {
-      border: 1px solid #bbb;
-      -moz-border-radius: 10px;
-      -webkit-border-radius: 10px;
-      -moz-box-shadow: 0 0 5px #ccc;
-      -webkit-box-shadow: 0 0 5px #ccc;
-      padding: 20px 25px;
+      padding: 40px;
       min-height: 500px;
       background: #fff;
+      margin-top: 50px;
+      background: url(/images/content_bg.png) no-repeat -10px 0;
     }
-
-    h2 {
-      font-size: 200%;
-    }
-
     #user_actions {
       padding: 5px 0;
       position: absolute;
       top: 0;
       right: 0;
-      background: #ccc;
+      background: #ddd;
       -moz-border-radius: 0 0 5px 5px;
-      -webkit-border-radius: 0 0 5px 5px;
+      -webkit-border-radius: 10px;
     }
-
     #user_actions a {
+      color: #666;
+      text-decoration: none;
+      font-size: 120%;
+      font-weight: bold;
       padding: 5px 10px;
     }
-    
+    #user_actions a:hover {
+      text-decoration: underline;
+    }
+
     #system_status {
       font-size: 13px;
     }
@@ -1493,7 +1504,6 @@ git_commit_all 'Basic application layout.' do
     #system_status .overview {
       float: left;
     }
-    
   }, 0)
   
   file "public/stylesheets/formtastic_changes.css", reindent(%Q{
