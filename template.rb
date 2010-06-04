@@ -437,6 +437,10 @@ git_commit_all 'Added email_spec for email testing.' do
   # gem 'email_spec', :env => :test
   plugin('email_spec', :git => 'git://github.com/fastestforward/email-spec.git')
   generate :email_spec
+
+  # Remove full rails/sinatra projects that interfere with jump to file.
+  quiet_run 'rm -r vendor/plugins/email-spec/examples'
+
   replace_in_file('features/step_definitions/email_steps.rb', /(module EmailHelpers)(.*?)(end{1,})/m, reindent(%Q{
   \\1
 
