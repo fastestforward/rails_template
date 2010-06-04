@@ -1776,7 +1776,10 @@ git_commit_all 'Basic application layout.' do
   })
   
   add_to_top_of_class 'app/models/user.rb', reindent(%Q{
-    named_scope :active, lambda { { :conditions => ['last_request_at > ?', 15.minutes.ago], :order => 'last_request_at DESC' } }
+    named_scope :active, lambda { {
+      :conditions => ['last_request_at > ?', 15.minutes.ago],
+      :order => 'last_request_at DESC'
+    } }
   }, 2)
 end
 
