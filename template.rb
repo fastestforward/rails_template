@@ -1833,5 +1833,3 @@ if yes?('Deploy to Heroku?')
 end
 
 show_post_instructions
-
-# TODO: forgotten password
