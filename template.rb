@@ -257,7 +257,7 @@ git_commit_all 'Added faker for seed data generation.' do
   }) 
 end
 
-git_commit_all 'Added rails-footnotes for easy development inspection and debugging.' do
+git_commit_all 'Added rails-footnotes for helpful development tools.' do
   gem "rails-footnotes", :env => :development
 end
 
