@@ -1337,7 +1337,7 @@ git_commit_all 'Basic application layout.' do
   file('public/javascript', open('http://github.com/documentcloud/underscore/raw/master/underscore-min.js').read)
   file('public/javascript', open('http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js').read)
   file "app/views/layouts/application.html.erb", reindent(%q{
-    <DOCTYPE html>
+    <!DOCTYPE html>
     <html>
       <head>
         <title><%= strip_tags(page_and_site_title) %></title>
