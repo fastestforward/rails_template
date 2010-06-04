@@ -290,6 +290,14 @@ git_commit_all 'Added railmail for development email inspection.' do
   generate 'railmail_migration'
 end
 
+git_commit_all 'Added erubis to improve templating performance.' do
+  gem "erubis"
+end
+
+git_commit_all 'Added rails_xss to escape strings by default.' do
+  plugin 'rails_xss', :git => 'git://github.com/rails/rails_xss.git'
+end
+
 git_commit_all 'Added annotate to display database schema in model files.' do
   gem 'annotate', :env => :development
 end
@@ -1310,7 +1318,7 @@ end
 
 
 git_commit_all 'Added formtastic for standard forms' do
-  gem 'formtastic'
+  gem 'formtastic', :version => '>= 0.9.10'
   generate :formtastic
 end
 
@@ -1564,18 +1572,18 @@ git_commit_all 'Basic application layout.' do
   add_to_bottom_of_class "app/helpers/application_helper.rb", reindent(%q{
 
     def flash_messages
-      types = [:alert, :notice]
-      if types.any? { |t| !flash[t].blank? }
-        messages = types.collect do |type|
-          unless flash[type].blank?
-            content_tag(:div, flash[type], :class => type)
-          end
-        end.join
+      messages = "".html_safe
 
+      [:alert, :notice].each do |type|
+        if flash[type].present?
+          messages << content_tag(:div, flash[type], :class => type)
+        end
+      end
+
+      if messages.present?
         content_tag(:div, messages, :id => 'flash')
       end
     end
-
 
     def pluralize_with_delimiter(count, singluar, plural = nil)
       number_with_delimiter(count) + ' ' + pluralize_without_number(count, singluar, plural)
@@ -1610,7 +1618,7 @@ git_commit_all 'Basic application layout.' do
         items << content_tag('li', contents)
       end
 
-      content_tag('ul', items, :id => 'system_status', :class => Rails.env)
+      content_tag('ul', items.to_s.html_safe, :id => 'system_status', :class => Rails.env)
     end
     # Returns a link to url with the specified content, automatically adds 
     # rel="nofollow" and the external class to the link.
