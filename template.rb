@@ -1553,7 +1553,7 @@ git_commit_all 'Basic application layout.' do
       end
 
       def site_slogan
-        #{slogans.rand.inspect}
+        #{slogans.random_element.inspect}
       end
 
       def title(text = nil)
