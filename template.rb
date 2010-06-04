@@ -1,3 +1,5 @@
+require 'open-uri'
+
 def git_commit_all(message, options = '')
   unless options.is_a?(Hash) && options.delete(:initial)
     if git_dirty?
@@ -1474,6 +1476,8 @@ end
 # end
 
 git_commit_all 'Basic application layout.' do
+  file('public/javascript', open('http://github.com/documentcloud/underscore/raw/master/underscore-min.js').read)
+  file('public/javascript', open('http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js').read)
   file "app/views/layouts/application.html.erb", reindent(%q{
     <DOCTYPE html>
     <html>
@@ -1487,8 +1491,7 @@ git_commit_all 'Basic application layout.' do
         <!--[if lt IE 8]>
           <%= stylesheet_link_tag 'ie' %>
         <![endif]-->
-        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-        <%= javascript_include_tag 'application' %>
+        <%= javascript_include_tag 'jquery.min.js', 'userscore-min.js', 'application' %>
         <%= yield :head %>
       </head>
       <body>
