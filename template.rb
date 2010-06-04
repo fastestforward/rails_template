@@ -218,7 +218,6 @@ git_commit_all 'Base Rails application.', :initial => true do
   run "echo '= #{application_name.camelize}' > README.rdoc"
   run "rm public/index.html"
   run "rm public/images/rails.png"
-  run "rm public/favicon.ico"
 
   run "touch tmp/.gitignore log/.gitignore vendor/.gitignore public/images/.gitignore"
   
