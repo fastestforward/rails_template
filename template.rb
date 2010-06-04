@@ -426,7 +426,7 @@ git_commit_all 'Added email_spec for email testing.' do
 end
 
 git_commit_all 'Added noisy_attr_accessible to warn on invalid mass assignment.' do
-  file 'config/initializers/noisy_attr_accessible.rb', reindent(%Q{
+  file 'config/initializers/noisy_attr_accessible.rb', reindent(%q{
     ActiveRecord::Base.class_eval do
       def log_protected_attribute_removal(*attributes)
         raise "Can't mass-assign these protected attributes: #{attributes.to_sentence}"
@@ -1410,7 +1410,7 @@ git_commit_all 'Added concerns directory to store reusable modules.' do
 end
 
 git_commit_all 'Automatically loading extensions and ruby files in /lib.' do
-  file 'config/initializers/require_libs.rb' do
+  file 'config/initializers/require_libs.rb', reindent(%q{"
     Dir.glob(Rails.root.join('lib', 'extensions', '**', '*.rb')).each do |file|
       require file
     end
@@ -1418,7 +1418,7 @@ git_commit_all 'Automatically loading extensions and ruby files in /lib.' do
     Dir.glob(Rails.root.join('lib', '*.rb')).each do |file|
       require file
     end
-  end
+  "})
 end
 
 git_commit_all 'Most recent schema.' do
