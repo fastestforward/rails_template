@@ -1618,6 +1618,10 @@ git_commit_all 'Basic application layout.' do
         [proc { User.active.count  },                                'active user',    nil,               'active-users-count'],
       ]
 
+      if Rails.env.development?
+        attributes.push([proc { RailmailDelivery.count },                           'email',          '/railmail',       'emails-count'])
+      end
+
       attributes.each do |value, countable, url, value_class|
         value = 
           begin
