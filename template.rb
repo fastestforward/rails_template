@@ -423,7 +423,7 @@ git_commit_all 'Added cucumber for acceptance testing.' do
       ARGV.replace(original_argv)
     end
 
-    When '(I )?save and open the page' do
+    Then /^(I )?save and open the page$/ do
       save_and_open_page
     end
   }))
