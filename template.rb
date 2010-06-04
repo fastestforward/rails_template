@@ -765,7 +765,10 @@ git_commit_all 'Added authlogic for application authentication.' do
     <% end %>
 
     <% semantic_form_for(@#{user_model_name}) do |f| %>
-      <%= f.inputs :email, :password %>
+      <% f.inputs do %>
+        <%= f.input :email %>
+        <%= f.input :password, :label => @user.new_record? ? 'Password' : 'New Password' %>
+      <% end %>
       <% f.buttons do %>
         <%= f.commit_button commit_button_text %>
       <% end %>
