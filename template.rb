@@ -509,7 +509,7 @@ git_commit_all 'Added authlogic for application authentication.' do
   }, 2)    
 
   # FIXME: unique and not null on email
-  generate('rspec_model', "#{user_model_name} email:string name:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string admin:boolean verified:boolean")
+  generate('rspec_model', "#{user_model_name} email:string name:string crypted_password:string password_salt:string perishable_token:string single_access_token:string persistence_token:string login_count:integer last_request_at:datetime last_login_at:datetime current_login_at:datetime last_login_ip:string current_login_ip:string admin:boolean email_verified:boolean")
   generate('rspec_controller', user_model_name.pluralize)
   route("map.resources :#{user_model_name.pluralize}, :except => :index")
 
@@ -521,6 +521,7 @@ git_commit_all 'Added authlogic for application authentication.' do
         :minimum => 4
       })
       c.require_password_confirmation = false
+      c.disable_perishable_token_maintenance = true
     end    
   
     validates_presence_of :password, :if => :force_validate_password
@@ -831,7 +832,7 @@ end
 git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
   post_instruction("Update email templates and attributes: app/models/#{user_model_name}_notifier.rb")
 
-  generate('mailer', "#{user_model_name}_notifier signup password_reset_instructions verify_email")
+  generate('mailer', "#{user_model_name}_notifier signup password_reset_instructions email_verification")
   
   add_to_top_of_class('app/controllers/application_controller.rb', reindent(%Q{
     before_filter :set_action_mailer_host
@@ -860,12 +861,13 @@ git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
       body          :edit_password_reset_url => edit_password_reset_url(user.perishable_token)  
     end
 
-    def verify_email(#{user_model_name})
+    def email_verification(#{user_model_name})
       subject       'Verify email address'
       recipients    #{user_model_name}.email
       from          'notifier@example.com'
       sent_on       Time.now  
-      body       
+      body          :verification_url => email_verification_url(user.perishable_token)
+      
     end
   }))
 
@@ -901,13 +903,16 @@ git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
     </p>
   }))
 
-  file("app/views/#{user_model_name}_notifier/verify_email.erb", reindent(%Q{
+  file("app/views/#{user_model_name}_notifier/email_verification.erb", reindent(%Q{
     Verify email address!
+    
+    <%= @verification_url %>
   }))
 
-  file("app/views/#{user_model_name}_notifier/verify_email.html.erb", reindent(%Q{
+  file("app/views/#{user_model_name}_notifier/email_verification.html.erb", reindent(%Q{
     <p>
       Verify email address!
+      <%= link_to @verification_url, @verification_url %>
     </p>
   }))
 
@@ -1662,6 +1667,53 @@ git_commit_all 'Basic application layout.' do
       :order => 'last_request_at DESC'
     } }
   }, 2)
+end
+
+git_commit_all 'Verifying email addresses.' do
+  add_to_top_of_class 'app/models/user.rb', reindent(%Q{
+    after_create :deliver_email_verification_instructions
+  })
+  
+  add_to_bottom_of_class 'app/models/user.rb', reindent(%Q{
+    def email=(value)
+      super(value.to_s.strip.downcase)
+    end
+    
+    def deliver_email_verification_instructions
+      reset_perishable_token!
+      #{user_model_name.camelcase}Notifier.deliver_email_verification(self)
+    end
+    
+    def verify!
+      self.email_verified = true
+      save(false)
+    end
+  })
+  
+  generate 'rspec_controller', 'email_verifications'
+  
+  replace_class 'app/controllers/email_verifications_controller.rb', reindent(%Q{
+    before_filter :load_user_using_perishable_token
+
+    def show
+      if @user
+        @user.verify!
+        flash[:notice] = "Thank you for verifying your account."
+      else
+        flash[:alert] = "Unable to verify your account."
+      end
+      redirect_to root_url
+    end
+
+    private
+
+    def load_user_using_perishable_token
+      @user = User.find_using_perishable_token(params[:id])
+      flash[:notice] = "Unable to find your account." unless @user
+    end
+  })
+  
+  route 'map.resources :email_verifications'
 end
 
 git_commit_all 'Added static_pages for handling static pages and error messages.' do
