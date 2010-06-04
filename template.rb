@@ -272,10 +272,6 @@ git_commit_all 'Added annotate to display database schema in model files.' do
   gem 'annotate', :env => :development
 end
 
-git_commit_all 'Added limerick_rake for handy rake tasks.' do
-  plugin 'limerick_rake', :git => "git://github.com/thoughtbot/limerick_rake.git"
-end
-
 git_commit_all 'Added carrierwave for handling attachments.' do
   gem 'carrierwave'
   gem 'aws', :lib => 'aws/s3'
