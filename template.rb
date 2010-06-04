@@ -1592,6 +1592,10 @@ git_commit_all 'Basic application layout.' do
     }
   }, 0)
   
+  file "public/stylesheets/print.css", reindent(%Q{
+    
+  })
+  
   slogans = "
     If you really want to know
     Keep it all here
