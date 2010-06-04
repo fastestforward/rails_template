@@ -425,6 +425,15 @@ git_commit_all 'Added email_spec for email testing.' do
   }))
 end
 
+git_commit_all 'Added noisy_attr_accessible to warn on invalid mass assignment.' do
+  file 'config/initializers/noisy_attr_accessible.rb', reindent(%Q{
+    ActiveRecord::Base.class_eval do
+      def log_protected_attribute_removal(*attributes)
+        raise "Can't mass-assign these protected attributes: #{attributes.to_sentence}"
+      end
+    end
+  })
+end
 
 git_commit_all 'Added authlogic for application authentication.' do
   gem 'authlogic'
