@@ -1409,6 +1409,18 @@ git_commit_all 'Added concerns directory to store reusable modules.' do
   file('app/concerns/.gitignore')
 end
 
+git_commit_all 'Automatically loading extensions and ruby files in /lib.' do
+  file 'config/initializers/require_libs.rb' do
+    Dir.glob(Rails.root.join('lib', 'extensions', '**', '*.rb')).each do |file|
+      require file
+    end
+
+    Dir.glob(Rails.root.join('lib', '*.rb')).each do |file|
+      require file
+    end
+  end
+end
+
 git_commit_all 'Most recent schema.' do
   rake "db:migrate"
   rake "db:test:clone"
