@@ -1772,10 +1772,6 @@ git_commit_all 'Adding some standard time formats' do
   })
 end
 
-if yes?('Push to a private github repo?')
-  run 'github create-from-local --private'
-end
-
 if yes?('Deploy to Heroku?')
   heroku_application_name = application_name.gsub(/[^A-Z0-9-]/i, '-')
   run "heroku create #{heroku_application_name}"
