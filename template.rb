@@ -658,9 +658,9 @@ git_commit_all 'Added authlogic for application authentication.' do
   
   file("app/views/#{user_model_name.pluralize}/new.html.erb", reindent(%Q{
 
-    <%= title 'Register' %>
+    <%= title 'Signup' %>
 
-    <%= render :partial => 'form', :locals => { :commit_button_text => 'Register' } %>
+    <%= render :partial => 'form', :locals => { :commit_button_text => 'Signup' } %>
 
   }))
 
@@ -797,10 +797,10 @@ git_commit_all 'Added authlogic for application authentication.' do
 
       Scenario: A #{user_model_name} can signup
         Given I am on the home page
-        When I follow "Register"
+        When I follow "Signup"
         And I fill in "email" with "kris@example.com"
         And I fill in "password" with "test123"
-        And I press "Register"
+        And I press "Signup"
         Then I should see "Account registered"
 
       Scenario: A #{user_model_name} can login with their email address
