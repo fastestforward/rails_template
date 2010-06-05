@@ -1461,7 +1461,7 @@ git_commit_all 'Basic application layout.' do
       right: 0;
       background: #ddd;
       -moz-border-radius: 0 0 5px 5px;
-      -webkit-border-radius: 10px;
+      -webkit-border-radius: 0 0 5px 5px;
     }
     #user_actions a {
       color: #666;
