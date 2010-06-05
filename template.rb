@@ -1442,16 +1442,48 @@ git_commit_all 'Basic application layout.' do
     }
     #header {
       height: 100px;
+      margin-bottom: 25px;
     }
     #header h1 {
       color: #ddd;
       padding-top: 50px;
     }
+    #flash {
+      margin-bottom: 25px;
+    }
+    #flash div {
+      border: 1px solid #bbb;
+    }
+    #flash {
+      margin-bottom: 25px;
+    }
+    #flash div {
+      border: 1px solid #bbb;
+      margin-bottom: 25px;
+    }
+    #flash div {
+      border: 1px solid #bbb;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+      -moz-box-shadow: 0 0 5px #333;
+      -webkit-box-shadow: 0 0 5px #333;
+      margin-top: 15px;
+      padding: 10px 25px;
+      background: #fff;
+      text-align: center;
+    }
+    #flash .alert {
+      border-color: #a00;
+      background: #f55;
+    }    
+    #flash .notice {
+      border-color: #0a0;
+      background: #5f5;
+    }
     #content {
       padding: 40px;
       min-height: 500px;
       background: #fff;
-      margin-top: 50px;
       background: url(/images/content_bg.png) no-repeat -10px 0;
     }
     #user_actions {
