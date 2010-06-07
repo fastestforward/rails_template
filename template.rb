@@ -1138,6 +1138,10 @@ if yes?('Add image uploads?')
         file.versions[style].try(:url)
       end
       
+      # Required for heroku
+      # def cache_dir
+      #  "#{'#{RAILS_ROOT}'}/tmp/uploads"
+      # end
     }))
     
     add_to_top_of_class('app/models/user.rb', %Q{
