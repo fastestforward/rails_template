@@ -1547,13 +1547,6 @@ git_commit_all 'Basic application layout.' do
       float: left;
     }
 
-    input[type="text"], form.formtastic ol li input[type="text"], form.formtastic ol li input[type="password"], form.formtastic ol li textarea {
-      padding: 2px 2px 2px 6px;
-      background: #fff;
-      border: 1px solid #D1CBCB;
-      font-size: 16px;
-      color: #444;
-    }
     form.formtastic {
       background: #f7f7f7;
       border-radius: 5px;
@@ -1563,40 +1556,55 @@ git_commit_all 'Basic application layout.' do
       padding: 10px;
       margin-top: 20px;
     }
+    form.formtastic input, form.formtastic textarea {
+      color: 444;
+      padding: 2px 2px 2px 6px;
+      font-size: 16px;
+      background: #fff;
+      border: 1px solid #ccc;
+      -webkit-border-radius: 3px;
+      -moz-border-radius: 3px;
+    }
     form.formtastic fieldset ol li.password input, form.formtastic fieldset ol li.string input {
-      width: 270px;
-      max-width: 270px;
+      width: 300px;
+      max-width: 300px;
+      min-height: 25px;
     }
     body form.formtastic fieldset ol li.text textarea {
       width: 98%;
     }
     form.formtastic fieldset ol li {
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
     form.formtastic fieldset.buttons {
       padding: 0;
     }
     form.formtastic .buttons a {
       float: right;
-      padding-top: 10px;
+      padding: 14px 0 0 14px;
     }
-    form.formtastic .buttons input, input.button {
-      margin-top: 5px;
-      border: 1px solid #ccc !important;
-      padding: 2px 5px !important;
+    form.formtastic .buttons input {
       font-size: 18px;
-      background: #E3E3E3 !important;
+      margin-top: 5px;
+      padding: 2px 5px;
+      border: 1px solid #aaa;
+      background: -moz-linear-gradient(90deg, #ccc, #fff);
+      background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#ccc));
+    }
+    form.formtastic .buttons input:hover {
+      border: 1px solid #1A4E76;
+      color: #1368a9;
+    }
+    form.formtastic .buttons input:active {
+      background: -moz-linear-gradient(90deg, #fff, #ccc);
+      background: -wekkit-gradient(linear, left top, left bottom, from(#fff), to(#ccc));
     }
     form.formtastic fieldset ol li label {
       display: block;
       width: auto;
+      font-size: 18px;
+      padding-bottom: 7px;
     }
-    .inputs label, .inputs .label {
-      font-size: 16px;
-      color: #666;
-      padding-bottom: 5px;
-    }
-
   }, 0)
   
   file "public/stylesheets/formtastic_changes.css", reindent(%Q{
