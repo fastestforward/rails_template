@@ -1140,7 +1140,7 @@ if yes?('Add image uploads?')
       
       # Required for heroku
       # def cache_dir
-      #  "#{'#{RAILS_ROOT}'}/tmp/uploads"
+      #   "#{'#{RAILS_ROOT}'}/tmp/uploads"
       # end
     }))
     
@@ -1489,6 +1489,7 @@ git_commit_all 'Basic application layout.' do
       min-height: 500px;
       background: #fff;
       background: url(/images/content_bg.png) no-repeat -10px 0;
+      margin-bottom: 30px;
     }
     #user_actions {
       padding: 5px 0;
