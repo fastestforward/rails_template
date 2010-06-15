@@ -829,13 +829,11 @@ git_commit_all 'Added authlogic for application authentication.' do
   }))
 end
 
-git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
-  post_instruction("Update email templates and attributes: app/models/#{user_model_name}_notifier.rb")
+git_commit_all "Adding the Notifier" do
+  post_instruction("Update email templates and attributes: app/models/notifier.rb")
 
-  generate('mailer', "#{user_model_name}_notifier signup password_reset_instructions email_verification")
+  generate('mailer', "notifier")
   
-  environment "config.action_mailer.default_url_options = { :host => 'localhost:3000' }", :env => :development
-
   add_to_top_of_class('app/controllers/application_controller.rb', reindent(%Q{
     before_filter :set_action_mailer_host
   }))
@@ -846,7 +844,7 @@ git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
     end
   }))
 
-  replace_class("app/models/#{user_model_name}_notifier.rb", reindent(%Q{
+  replace_class("app/models/notifier.rb", reindent(%Q{
     def signup(#{user_model_name})
       subject       'Thanks for signing up'
       recipients    #{user_model_name}.email
@@ -873,16 +871,18 @@ git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
     end
   }))
 
-  file("app/views/#{user_model_name}_notifier/password_reset_instructions.erb", reindent(%Q{
+  file("app/views/notifier/password_reset_instructions.text.erb", reindent(%Q{
+
     A request to reset your password has been made.  
     If you did not make this request, simply ignore this email.  
     If you did make this request just click the link below:  
       <%= @edit_password_reset_url %>
     If the above URL does not work try copying and pasting it into your browser.  
     If you continue to have problem please feel free to contact us.
+
   }))
 
-  file("app/views/#{user_model_name}_notifier/password_reset_instructions.html.erb", reindent(%Q{
+  file("app/views/notifier/password_reset_instructions.html.erb", reindent(%Q{
     <p>
       A request to reset your password has been made.  
       If you did not make this request, simply ignore this email.  
@@ -894,24 +894,29 @@ git_commit_all "Adding #{user_model_name.camelcase}Notifier" do
       If you continue to have problem please feel free to contact us.
     </p>
   }))
+  
 
-  file("app/views/#{user_model_name}_notifier/signup.erb", reindent(%Q{
+  file("app/views/notifier/signup.text.erb", reindent(%Q{
+
     Thanks for signing up!
+
   }))
 
-  file("app/views/#{user_model_name}_notifier/signup.html.erb", reindent(%Q{
+  file("app/views/notifier/signup.html.erb", reindent(%Q{
     <p>
       Thanks for signing up!
     </p>
   }))
 
-  file("app/views/#{user_model_name}_notifier/email_verification.erb", reindent(%Q{
+  file("app/views/notifier/email_verification.text.erb", reindent(%Q{
+
     Verify email address!
     
     <%= @verification_url %>
+
   }))
 
-  file("app/views/#{user_model_name}_notifier/email_verification.html.erb", reindent(%Q{
+  file("app/views/notifier/email_verification.html.erb", reindent(%Q{
     <p>
       Verify email address!
       <%= link_to @verification_url, @verification_url %>
@@ -999,7 +1004,7 @@ git_commit_all 'Adding password reset.' do
   
     def reset_password!
       reset_perishable_token!
-      UserNotifier.deliver_password_reset_instructions(self)
+      Notifier.deliver_password_reset_instructions(self)
     end
   }))
   
@@ -1014,6 +1019,7 @@ git_commit_all 'Adding password reset.' do
       Given I am signed up as "Kris"
       And I am on the home page
       When I follow "Login"
+      And no emails have been sent
       And I follow "Forgot password?"
       And I fill in "email" with "kris@example.com"
       And I press "Reset Password"
@@ -1041,6 +1047,7 @@ git_commit_all 'Adding password reset.' do
       Given I am signed up as "Kris"
       And I am on the home page
       When I follow "Login"
+      And no emails have been sent
       And I follow "Forgot password?"
       And I fill in "email" with "kris@example.com"
       And I press "Reset Password"
@@ -1801,7 +1808,7 @@ git_commit_all 'Verifying email addresses.' do
     
     def deliver_email_verification_instructions
       reset_perishable_token!
-      #{user_model_name.camelcase}Notifier.deliver_email_verification(self)
+      Notifier.deliver_email_verification(self)
     end
     
     def verify!
