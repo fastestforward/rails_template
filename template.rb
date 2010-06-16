@@ -249,6 +249,7 @@ end
 
 git_commit_all 'Added faker for seed data generation.' do
   gem 'faker', :env => :development
+  gem 'faker', :env => :test
   
   file 'lib/tasks/app.rake', reindent(%q{
     namespace :app do
