@@ -838,6 +838,8 @@ git_commit_all "Adding the Notifier" do
 
   generate('mailer', "notifier")
 
+  environment "config.action_mailer.default_url_options = { :host => 'localhost:3000' }", :env => :development  
+  
   add_to_top_of_class('app/controllers/application_controller.rb', reindent(%Q{
     before_filter :set_action_mailer_host
   }))
