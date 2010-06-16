@@ -1,5 +1,9 @@
 require 'open-uri'
 
+def rails_version
+  ::Rails::VERSION::STRING
+end
+
 def git_commit_all(message, options = '')
   unless options.is_a?(Hash) && options.delete(:initial)
     if git_dirty?
@@ -833,7 +837,7 @@ git_commit_all "Adding the Notifier" do
   post_instruction("Update email templates and attributes: app/models/notifier.rb")
 
   generate('mailer', "notifier")
-  
+
   add_to_top_of_class('app/controllers/application_controller.rb', reindent(%Q{
     before_filter :set_action_mailer_host
   }))
@@ -1859,6 +1863,23 @@ end
 
 git_commit_all 'Added a staging environment with identical contents to production.' do
   run 'cp config/environments/production.rb config/environments/staging.rb'
+end
+
+if %w(2.3.6 2.3.7 2.3.8).include?(rails_version)
+  git_commit_all 'Patch ActionController::Integration cookie handling' do
+    file('config/initializers/action_controller_integration_cookie_handling_monkey_patch.rb', reindent(%Q{
+      module ActionController::Integration
+        class Session
+          private
+          def encode_cookies
+            cookies.inject("") do |string, (name, value)|
+              string << "#{'#{name.sub(/^\n/, "")}'}=#{'#{value}'}; "
+            end
+          end
+        end
+      end
+    }, 0)) 
+  end
 end
 
 # TODO: email notification
