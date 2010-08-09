@@ -1119,7 +1119,7 @@ if yes?('Add image uploads?')
           config.storage = :s3
           config.s3_access_key_id = 'xxx'
           config.s3_secret_access_key = 'xxx'
-          config.s3_bucket = "#{application_name.dasherize}-#{'#{Rails.env.dasherize}'}"
+          config.s3_bucket = "#{application_name.dasherize}-#{Rails.env.dasherize}"
         end
       end
     }))
