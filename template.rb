@@ -85,8 +85,7 @@ git_commit_all 'Removing default test directory in favor of rspec and cucumber.'
 end
 
 git_commit_all 'Added rspec and rspec-rails.' do
-  gem 'rspec', :require => 'spec', :group => :test
-  gem 'rspec-rails', :require => 'spec/rails', :group => :test
+  gem 'rspec-rails', :version => '>= 2.0.0.beta.19', :require => 'spec/rails', :group => :test
   generate(:rspec)
 end
 
