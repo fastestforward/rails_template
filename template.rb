@@ -49,7 +49,7 @@ end
 # end
 
 git_commit_all 'Added will_paginate for pagination.' do
-  gem "will_paginate", :git => "http://github.com/mislav/will_paginate.git", :branch => "rails3" 
+  gem "will_paginate", ">= 3.0.pre2"
 end
 
 # git_commit_all 'Added railmail for development email inspection.' do
