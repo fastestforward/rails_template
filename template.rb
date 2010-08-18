@@ -52,11 +52,11 @@ git_commit_all 'Added will_paginate for pagination.' do
   gem "will_paginate", :git => "http://github.com/mislav/will_paginate.git", :branch => "rails3" 
 end
 
-git_commit_all 'Added railmail for development email inspection.' do
-  plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :group => :development
-  environment 'config.action_mailer.delivery_method = :railmail', :group => :development
-  generate 'railmail_migration'
-end
+# git_commit_all 'Added railmail for development email inspection.' do
+#   plugin 'railmail', :git => 'git://github.com/jqr/railmail.git', :group => :development
+#   environment 'config.action_mailer.delivery_method = :railmail', :group => :development
+#   generate 'railmail_migration'
+# end
 
 git_commit_all 'Added annotate to display database schema in model files.' do
   gem 'annotate', :group => :development
