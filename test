@@ -1,2 +1,2 @@
 #!/bin/bash
-rm -rf app && rails app -m template.rb
+rm -rf app && rails new app --template template.rb
