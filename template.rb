@@ -1,3 +1,5 @@
+TEMPLATE_ROOT = File.dirname(__FILE__)
+
 def git_commit_all(message, options = '')
   unless options.is_a?(Hash) && options.delete(:initial)
     if git_dirty?
