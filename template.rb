@@ -108,7 +108,7 @@ git_commit_all 'Added authlogic for application authentication.' do
   gem 'authlogic'
   model_name = 'user'
 
-  route("map.resource :#{model_name}_session")
+  route("resource :#{model_name}_session")
   
   # FIXME: this is creating resource and resources routes.
   # FIXME: should clean up any unecessary actions/views
