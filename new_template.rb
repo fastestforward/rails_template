@@ -1,17 +1,13 @@
 TEMPLATE_ROOT = File.dirname(File.expand_path(__FILE__))
-source_paths << File.join(TEMPLATE_ROOT, 'overwrites')
+source_paths << File.join(TEMPLATE_ROOT)
 APP_NAME = File.basename(destination_root)
 
 require "#{File.join(TEMPLATE_ROOT, 'helpers.rb')}"
 
-def overwrite_file(file_name)
-  remove_file "#{file_name}"
-  copy_file "#{file_name}", "#{file_name}"
-end
-
 ## Clean up files before performing initial commit
 remove_file 'public/index.html'
 remove_file 'public/images/rails.png'
+remove_file 'public/favicon.ico'
 add_file 'public/images/.gitkeep'
 
 remove_file 'README'
@@ -24,9 +20,11 @@ remove_file 'db/seeds.rb'
 add_file 'db/.gitkeep'
 
 run 'cp config/database.yml config/database.yml.example'
-overwrite_file('.gitignore')
+remove_file '.gitignore'
+copy_file 'overwrites/.gitignore', '.gitignore'
 
 # NOTE keep rails version up to date
+# TODO make app name look purdy
 add_file '.rvmrc' do
   %Q(
     rvm_install_on_use_flag=1
@@ -36,13 +34,19 @@ add_file '.rvmrc' do
   )
 end
 
-run 'bundle install'
+uncomment_line File.join('app', 'controllers', 'application_controller.rb'), 'filter_parameter_logging :password'
+
+copy_file 'overwrites/app.rake', 'lib/tasks/app.rake'
+
+remove_file 'Gemfile'
+copy_file 'overwrites/Gemfile', 'Gemfile'
+# run 'bundle install'
 
 git :init
 git :add => '-A'
 git :commit => "-m 'Initial commit'"
 
-## Prevent generators from creating stylesheets
+## Configure generators
 inject_into_file 'config/application.rb', :after => 'config.filter_parameters += [:password]' do
   %Q(
     config.generators do |g|
@@ -52,25 +56,9 @@ inject_into_file 'config/application.rb', :after => 'config.filter_parameters +=
 end
 
 ## Set up jQuery
-gem 'jquery-rails'
+# TODO download libraries
 
 ## Set up testing stack
-append_file 'Gemfile' do
-%Q(
-group :test, :development do
-  gem 'capybara'
-  gem 'cucumber-rails'
-  gem 'database_cleaner'
-  gem 'factory_girl_rails'
-  gem 'faker'
-  gem 'rspec-rails', '>= 2.0.0.beta.22'
-  gem 'spork'
-end
-)
-end
-
-run 'bundle install'
-
 inject_into_file 'config/application.rb', :after => 'g.stylesheets false' do
   %Q(
       g.test_framework :rspec, :fixture => true, :view_specs => false
@@ -79,4 +67,9 @@ inject_into_file 'config/application.rb', :after => 'g.stylesheets false' do
   )
 end
 
-run 'rails g rspec:install'
+# TODO user generate command here?
+# run 'rails g rspec:install'
+# remove_dir 'autotest'
+
+git :add => '-A'
+git :commit => "-m 'Initial commit'"

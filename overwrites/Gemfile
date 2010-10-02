@@ -2,3 +2,27 @@ source 'http://rubygems.org'
 
 gem 'rails', '3.0.0'
 gem 'pg'
+gem 'devise'
+gem 'delayed_job'
+gem 'google_analytics'
+gem 'jquery-rails'
+gem 'will_paginate', '=3.0.pre2'
+gem 'carrierwave-rails3'
+gem 'httparty'
+
+group :development do
+  gem 'annotate'
+  gem 'heroku_san'
+end
+
+group :test, :development do
+  gem 'capybara'
+  gem 'cucumber-rails'
+  gem 'database_cleaner'
+  gem 'factory_girl_rails'
+  gem 'faker'
+  gem 'rspec-rails', '>= 2.0.0.beta.22'
+  gem 'email_spec'
+  gem 'spork'
+  gem 'launchy'
+end
