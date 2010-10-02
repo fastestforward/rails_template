@@ -40,7 +40,7 @@ copy_file 'overwrites/app.rake', 'lib/tasks/app.rake'
 
 remove_file 'Gemfile'
 copy_file 'overwrites/Gemfile', 'Gemfile'
-# run 'bundle install'
+run 'bundle install'
 
 git :init
 git :add => '-A'
@@ -67,9 +67,14 @@ inject_into_file 'config/application.rb', :after => 'g.stylesheets false' do
   )
 end
 
-# TODO user generate command here?
-# run 'rails g rspec:install'
-# remove_dir 'autotest'
+generate 'rspec:install'
+remove_dir 'autotest'
+
+generate 'email_spec'
+
+copy_file 'overwrites/hoptoad.rb', 'config/initializers/hoptoad.rb'
 
 git :add => '-A'
 git :commit => "-m 'Initial commit'"
+
+run 'touch config/initializer/google_analytics.rb'
