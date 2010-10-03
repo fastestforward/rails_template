@@ -31,7 +31,8 @@ add_file 'README.rdoc' do
   %Q(=#{APP_NAME})
 end
 
-# TODO replace the default application layout
+# NOTE keep reset scripts up to date
+copy_file 'overwrites/application.html.erb', 'app/views/layouts/application.html.erb'
 
 remove_file 'db/seeds.rb'
 add_file 'db/.gitkeep'
