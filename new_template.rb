@@ -65,8 +65,14 @@ inject_into_file 'config/application.rb', :after => 'config.filter_parameters +=
   )
 end
 
+git :add => '-A'
+git :commit => "-m 'Prevent generators from making stylesheets.'"
+
 ## Set up jQuery
 run 'rails g jquery:install --ui'
+
+git :add => '-A'
+git :commit => "-m 'Set up jQuery.'"
 
 ## Set up testing stack
 inject_into_file 'config/application.rb', :after => 'g.stylesheets false' do
