@@ -61,7 +61,7 @@ inject_into_file 'config/application.rb', :after => 'config.filter_parameters +=
 end
 
 ## Set up jQuery
-# TODO download libraries
+run 'rails g jquery:install --ui'
 
 ## Set up testing stack
 inject_into_file 'config/application.rb', :after => 'g.stylesheets false' do

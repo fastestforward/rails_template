@@ -16,6 +16,7 @@ gem 'hoptoad_notifier'
 group :development do
   gem 'annotate'
   gem 'heroku_san'
+  gem 'jquery-rails'
 end
 
 group :test, :development do
