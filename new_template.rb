@@ -2,7 +2,22 @@ TEMPLATE_ROOT = File.dirname(File.expand_path(__FILE__))
 source_paths << File.join(TEMPLATE_ROOT)
 APP_NAME = File.basename(destination_root)
 
-require "#{File.join(TEMPLATE_ROOT, 'helpers.rb')}"
+# require "#{File.join(TEMPLATE_ROOT, 'helpers.rb')}"
+
+## Set up rvm
+run "rvm gemset create #{APP_NAME}"
+run "rvm 1.9.2@#{APP_NAME}"
+
+# TODO make app name look purdy
+# NOTE keep rails version up to date
+add_file '.rvmrc' do
+  %Q(
+    rvm_install_on_use_flag=1
+    rvm 1.9.2
+    rvm_gemset_create_on_use_flag=1
+    rvm gemset use #{APP_NAME}
+  )
+end
 
 ## Clean up files before performing initial commit
 remove_file 'public/index.html'
@@ -16,6 +31,8 @@ add_file 'README.rdoc' do
   %Q(=#{APP_NAME})
 end
 
+# TODO replace the default application layout
+
 remove_file 'db/seeds.rb'
 add_file 'db/.gitkeep'
 
@@ -23,23 +40,11 @@ run 'cp config/database.yml config/database.yml.example'
 remove_file '.gitignore'
 copy_file 'overwrites/.gitignore', '.gitignore'
 
-# NOTE keep rails version up to date
-# TODO make app name look purdy
-add_file '.rvmrc' do
-  %Q(
-    rvm_install_on_use_flag=1
-    rvm 1.9.2
-    rvm_gemset_create_on_use_flag=1
-    rvm gemset use #{APP_NAME}
-  )
-end
-
-uncomment_line File.join('app', 'controllers', 'application_controller.rb'), 'filter_parameter_logging :password'
-
 copy_file 'overwrites/app.rake', 'lib/tasks/app.rake'
 
 remove_file 'Gemfile'
 copy_file 'overwrites/Gemfile', 'Gemfile'
+
 run 'bundle install'
 
 git :init
@@ -63,18 +68,20 @@ inject_into_file 'config/application.rb', :after => 'g.stylesheets false' do
   %Q(
       g.test_framework :rspec, :fixture => true, :view_specs => false
       g.fixture_replacement :factory_girl, :dir => "spec/factories"
-      g.integration_tool :rspec
-  )
+      g.integration_tool :rspec)
 end
 
-generate 'rspec:install'
+run 'rails g rspec:install'
 remove_dir 'autotest'
-
-generate 'email_spec'
+run 'rails g email_spec'
+run 'rails g cucumber:install --rspec --capybara'
 
 copy_file 'overwrites/hoptoad.rb', 'config/initializers/hoptoad.rb'
+
+run 'touch config/initializers/google_analytics.rb'
 
 git :add => '-A'
 git :commit => "-m 'Initial commit'"
 
-run 'touch config/initializer/google_analytics.rb'
+## Configure devise and generate User model
+# TODO
