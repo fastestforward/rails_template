@@ -45,6 +45,8 @@ copy_file 'overwrites/app.rake', 'lib/tasks/app.rake'
 
 run 'cp config/environments/production.rb config/environments/staging.rb'
 
+copy_file 'overwrites/time_formats.rb', 'config/initializers/time_formats.rb'
+
 remove_file 'Gemfile'
 copy_file 'overwrites/Gemfile', 'Gemfile'
 
