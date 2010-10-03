@@ -78,7 +78,7 @@ run 'rails g cucumber:install --rspec --capybara'
 
 copy_file 'overwrites/hoptoad.rb', 'config/initializers/hoptoad.rb'
 
-run 'touch config/initializers/google_analytics.rb'
+copy_file 'overwrites/google_analytics.rb', 'config/initializers/google_analytics.rb'
 
 git :add => '-A'
 git :commit => "-m 'Initial commit'"
