@@ -43,6 +43,8 @@ copy_file 'overwrites/.gitignore', '.gitignore'
 
 copy_file 'overwrites/app.rake', 'lib/tasks/app.rake'
 
+run 'cp config/environments/production.rb config/environments/staging.rb'
+
 remove_file 'Gemfile'
 copy_file 'overwrites/Gemfile', 'Gemfile'
 
@@ -82,7 +84,7 @@ copy_file 'overwrites/hoptoad.rb', 'config/initializers/hoptoad.rb'
 copy_file 'overwrites/google_analytics.rb', 'config/initializers/google_analytics.rb'
 
 git :add => '-A'
-git :commit => "-m 'Initial commit'"
+git :commit => "-m 'Testing stack.'"
 
 ## Configure devise and generate User model
 # TODO
