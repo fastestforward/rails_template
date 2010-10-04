@@ -32,6 +32,7 @@ add_file 'README.rdoc' do
 end
 
 # NOTE keep reset scripts up to date
+remove_file 'app/views/layouts/application.html.erb'
 copy_file 'overwrites/application.html.erb', 'app/views/layouts/application.html.erb'
 
 remove_file 'db/seeds.rb'
@@ -45,7 +46,7 @@ copy_file 'overwrites/app.rake', 'lib/tasks/app.rake'
 
 run 'cp config/environments/production.rb config/environments/staging.rb'
 
-copy_file 'overwrites/time_formats.rb', 'config/initializers/time_formats.rb'
+# copy_file 'overwrites/time_formats.rb', 'config/initializers/time_formats.rb'
 
 remove_file 'Gemfile'
 copy_file 'overwrites/Gemfile', 'Gemfile'
@@ -84,8 +85,11 @@ end
 
 run 'rails g rspec:install'
 remove_dir 'autotest'
-run 'rails g email_spec'
+
 run 'rails g cucumber:install --rspec --capybara'
+
+gsub_file 'features/support/env.rb', /Capybara.default_selector = :css/, 'Dir["#{Rails.root}/spec/support/**/*.rb"].each {|f| require f}'
+run 'rails g email_spec:steps'
 
 copy_file 'overwrites/hoptoad.rb', 'config/initializers/hoptoad.rb'
 
@@ -95,4 +99,41 @@ git :add => '-A'
 git :commit => "-m 'Testing stack.'"
 
 ## Configure devise and generate User model
-# TODO
+# From http://github.com/fortuity/rails3-mongoid-devise/
+run 'rails generate devise:install'
+run 'rails generate devise:views'
+
+gsub_file 'config/environments/development.rb', /# Don't care if the mailer can't send/, '### ActionMailer Config'
+gsub_file 'config/environments/development.rb', /config.action_mailer.raise_delivery_errors = false/ do
+<<-RUBY
+config.action_mailer.default_url_options = { :host => 'localhost:3000' }
+  # A dummy setup for development - no deliveries, but logged
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = false
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.default :charset => "utf-8"
+RUBY
+end
+gsub_file 'config/environments/production.rb', /config.i18n.fallbacks = true/ do
+<<-RUBY
+config.i18n.fallbacks = true
+
+  config.action_mailer.default_url_options = { :host => 'yourhost.com' }
+  ### ActionMailer Config
+  # Setup for production - deliveries, no errors raised
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.default :charset => "utf-8"
+RUBY
+end
+
+run 'rails generate devise User'
+
+gsub_file 'app/models/user.rb', /end/ do
+<<-RUBY
+  validates_presence_of :email
+  validates_uniqueness_of :email, :case_sensitive => false
+end
+RUBY
+end
