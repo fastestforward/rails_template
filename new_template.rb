@@ -153,7 +153,9 @@ end
 RUBY
 end
 
-# Finish user authentication section
+## Finish setting up user authentication section
+remove_file 'config/locales/devise.en.yml'
+copy_file 'overwrites/config/locales/devise.en.yml', 'config/locales/devise.en.yml'
 copy_file 'overwrites/app/controllers/users_controller.rb', 'app/controllers/users_controller.rb'
 copy_file 'overwrites/app/controllers/user_sessions_controller.rb', 'app/controllers/user_sessions_controller.rb'
 copy_file 'overwrites/app/views/user_sessions/new.html.erb', 'app/views/user_sessions/new.html.erb'
@@ -178,3 +180,6 @@ gsub_file 'config/routes.rb', /devise_for :users/ do
   end
 RUBY
 end
+
+git :add => '-A'
+git :commit => "-m 'User authentication system.'"
