@@ -2,7 +2,12 @@ TEMPLATE_ROOT = File.dirname(File.expand_path(__FILE__))
 source_paths << File.join(TEMPLATE_ROOT)
 APP_NAME = File.basename(destination_root)
 
-# require "#{File.join(TEMPLATE_ROOT, 'helpers.rb')}"
+def supply_file(filename)
+  if File.exists?(File.join(destination_root, filename))
+    remove_file filename
+  end
+  copy_file File.join('supplies', filename), filename
+end
 
 ## Set up rvm
 run "rvm gemset create '#{APP_NAME}'"
@@ -23,7 +28,7 @@ end
 remove_file 'public/index.html'
 remove_file 'public/favicon.ico'
 remove_file 'public/images/rails.png'
-copy_file 'overwrites/public/images/content_bg.png', 'public/images/content_bg.png'
+supply_file 'public/images/content_bg.png'
 
 remove_file 'README'
 remove_dir 'doc'
@@ -32,37 +37,32 @@ add_file 'README.rdoc' do
 end
 
 # NOTE keep reset scripts up to date
-remove_file 'app/views/layouts/application.html.erb'
-copy_file 'overwrites/app/views/layouts/application.html.erb', 'app/views/layouts/application.html.erb'
+supply_file 'app/views/layouts/application.html.erb'
 
-remove_file 'app/helpers/application_helper.rb'
-copy_file 'overwrites/app/helpers/application_helper.rb', 'app/helpers/application_helper.rb'
-copy_file 'overwrites/app/helpers/title_helper.rb', 'app/helpers/title_helper.rb'
+supply_file 'app/helpers/application_helper.rb'
+supply_file 'app/helpers/title_helper.rb'
 
-remove_file 'public/javascripts/application.js'
-copy_file 'overwrites/public/javascripts/application.js', 'public/javascripts/application.js'
+supply_file 'public/javascripts/application.js'
 
-copy_file 'overwrites/public/stylesheets/application.css', 'public/stylesheets/application.css'
-copy_file 'overwrites/public/stylesheets/formtastic.css', 'public/stylesheets/formtastic.css'
-copy_file 'overwrites/public/stylesheets/formtastic_changes.css', 'public/stylesheets/formtastic_changes.css'
-copy_file 'overwrites/public/stylesheets/print.css', 'public/stylesheets/print.css'
+supply_file 'public/stylesheets/application.css'
+supply_file 'public/stylesheets/formtastic.css'
+supply_file 'public/stylesheets/formtastic_changes.css'
+supply_file 'public/stylesheets/print.css'
 
 remove_file 'db/seeds.rb'
-add_file 'db/.gitkeep'
+# add_file 'db/.gitkeep'
 # TODO remove this later when migrations are added
 
 run 'cp config/database.yml config/database.yml.example'
-remove_file '.gitignore'
-copy_file 'overwrites/.gitignore', '.gitignore'
+supply_file '.gitignore'
 
-copy_file 'overwrites/lib/tasks/app.rake', 'lib/tasks/app.rake'
+supply_file 'lib/tasks/app.rake'
 
 run 'cp config/environments/production.rb config/environments/staging.rb'
 
 # copy_file 'overwrites/time_formats.rb', 'config/initializers/time_formats.rb'
 
-remove_file 'Gemfile'
-copy_file 'overwrites/Gemfile', 'Gemfile'
+supply_file 'Gemfile'
 
 run 'bundle install'
 
@@ -104,11 +104,10 @@ run 'rails g cucumber:install --rspec --capybara'
 gsub_file 'features/support/env.rb', /Capybara.default_selector = :css/, 'Dir["#{Rails.root}/spec/support/**/*.rb"].each {|f| require f}'
 run 'rails g email_spec:steps'
 
-copy_file 'overwrites/features/step_definitions/debug_steps.rb', 'features/step_definitions/debug_steps.rb'
+supply_file'features/step_definitions/debug_steps.rb'
 
-copy_file 'overwrites/config/initializers/hoptoad.rb', 'config/initializers/hoptoad.rb'
-
-copy_file 'overwrites/config/initializers/google_analytics.rb', 'config/initializers/google_analytics.rb'
+supply_file 'config/initializers/hoptoad.rb'
+supply_file 'config/initializers/google_analytics.rb'
 
 git :add => '-A'
 git :commit => "-m 'Testing stack.'"
@@ -154,19 +153,18 @@ RUBY
 end
 
 ## Finish setting up user authentication section
-remove_file 'config/locales/devise.en.yml'
-copy_file 'overwrites/config/locales/devise.en.yml', 'config/locales/devise.en.yml'
-copy_file 'overwrites/app/controllers/users_controller.rb', 'app/controllers/users_controller.rb'
-copy_file 'overwrites/app/controllers/user_sessions_controller.rb', 'app/controllers/user_sessions_controller.rb'
-copy_file 'overwrites/app/views/user_sessions/new.html.erb', 'app/views/user_sessions/new.html.erb'
-copy_file 'overwrites/app/views/users/edit.html.erb', 'app/views/users/edit.html.erb'
-copy_file 'overwrites/app/views/users/new.html.erb', 'app/views/users/new.html.erb'
+supply_file 'config/locales/devise.en.yml'
+supply_file 'app/controllers/users_controller.rb'
+supply_file 'app/controllers/user_sessions_controller.rb'
+supply_file 'app/views/user_sessions/new.html.erb'
+supply_file 'app/views/users/edit.html.erb'
+supply_file 'app/views/users/new.html.erb'
 
 # Set up static pages
-copy_file 'overwrites/app/controllers/static_pages_controller.rb', 'app/controllers/static_pages_controller.rb'
-copy_file 'overwrites/app/helpers/static_pages_helper.rb', 'app/helpers/static_pages_helper.rb'
-copy_file 'overwrites/app/views/static_pages/index.html.erb', 'app/views/static_pages/index.html.erb'
-copy_file 'overwrites/spec/controllers/static_pages_controller_spec.rb', 'spec/controllers/static_pages_controller_spec.rb'
+supply_file 'app/controllers/static_pages_controller.rb'
+supply_file 'app/helpers/static_pages_helper.rb'
+supply_file 'app/views/static_pages/index.html.erb'
+supply_file 'spec/controllers/static_pages_controller_spec.rb'
 
 # Update default devise routes (add root route while we're at it)
 gsub_file 'config/routes.rb', /devise_for :users/ do
