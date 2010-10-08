@@ -1,0 +1,11 @@
+table.data { font-size: 16px; width: 100%; margin-top: 5px; color: #444; font-family: "Lucida Sans Unicode","Lucida Grande",Sans-Serif;}
+table.data thead th { background: -moz-linear-gradient(90deg, #444, #666); background: -webkit-gradient(linear, left top, left bottom, from(#666), to(#444)); margin:0; padding:10px 0 10px 10px; font-size: 16px; color: #fff;}
+table.data thead th:first-child { -moz-border-radius-topleft: 10px; -webkit-border-radius-topleft: 10px; }
+table.data thead th:last-child { -moz-border-radius-topright: 10px; -webkit-border-radius-topright: 10px; }
+table.data tbody tr:hover td { background: -moz-linear-gradient(90deg, #ddd, #ccc); background: -webkit-gradient(linear, left top, left bottom, from(#ddd), to(#ccc));;}
+table.data tbody td { margin:0; padding: 15px 10px; background: -moz-linear-gradient(90deg, #e9e9e9, #f7f7f7); background: -webkit-gradient(linear, left top, left bottom, from(#e9e9e9), to(#f7f7f7)); color: #444;}
+table.data tbody td a { color: #444;}
+table.data tbody tr { border-bottom: 1px solid #ddd; font-size: 14px; }
+table.data tbody tr:last-child { border-bottom: 0px; }
+table.data tbody tr:last-child td:first-child { -moz-border-radius-bottomleft: 10px; -webkit-border-radius-bottomleft: 10px; }
+table.data tbody tr:last-child td:last-child { -moz-border-radius-bottomright: 10px; -webkit-border-radius-bottomright: 10px; }

@@ -1,0 +1,253 @@
+.clear { clear: both;}
+html {
+  background: #fff;
+}
+body {
+  font: 14px/100% Geneva, Helvetica, Arail;
+  color: #444;
+}
+h1 {
+  font-size: 300%;
+  padding: 15px 0 5px 0;
+}
+h2 {
+  font-size: 200%;
+  line-height: 200%;
+}
+h1 a {
+  color: inherit;
+  text-decoration: inherit;
+}
+#bg {
+  position: absolute;
+  top: 0;
+  z-index: 0;
+  width: 100%
+}
+#header-bg {
+  height: 100px;
+  background: #2d2d2d;
+}
+#body-bg {
+  border-top: 1px solid #1b5983;
+  border-bottom: 1px solid #35536f;
+  height: 200px;
+  width: 100%;
+  background: -moz-linear-gradient(90deg, #3e77ad, #184773); 
+  background: -webkit-gradient(linear, left top, left bottom, from(#3e77ad), to(#184773)); 
+}
+#container {
+  position: relative;
+  width: 960px;
+  margin: 0 auto;
+}
+#header {
+  height: 100px;
+  margin-bottom: 25px;
+}
+#header h1 {
+  color: #ddd;
+  padding-top: 35px;
+}
+#flash {
+  margin-bottom: 25px;
+}
+#flash div {
+  border: 1px solid #bbb;
+}
+#flash {
+  margin-bottom: 25px;
+}
+#flash div {
+  border: 1px solid #bbb;
+  margin-bottom: 25px;
+}
+#flash div {
+  border: 1px solid #bbb;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -moz-box-shadow: 0 0 5px #333;
+  -webkit-box-shadow: 0 0 5px #333;
+  margin-top: 15px;
+  padding: 10px 25px;
+  background: #fff;
+  text-align: center;
+}
+#flash .alert {
+  border-color: #a00;
+  background: #f55;
+}    
+#flash .notice {
+  border-color: #0a0;
+  background: #5f5;
+}
+#content {
+  padding: 40px;
+  min-height: 500px;
+  background: #fff;
+  background: url(/images/content_bg.png) no-repeat -10px 0;
+  margin-bottom: 30px;
+}
+#user_actions {
+  padding: 5px 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ddd;
+  -moz-border-radius: 0 0 5px 5px;
+  -webkit-border-radius: 0 0 5px 5px;
+}
+#user_actions a {
+  color: #666;
+  text-decoration: none;
+  font-size: 120%;
+  font-weight: bold;
+  padding: 5px 10px;
+}
+#user_actions a:hover {
+  text-decoration: underline;
+}
+
+#system_status {
+  font-size: 13px;
+}
+#system_status.development {
+  background: #811;
+}
+
+#system_status.demo {
+  background: #116;
+}
+
+#system_status.stage {
+  background: #616;
+}
+
+#system_status, #system_status a {
+  color: #aaa;
+}
+#system_status a {
+  text-decoration: underline;
+}
+#system_status {
+  background: #333;
+  list-style-type: none;
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  height: 20px;
+}
+#system_status li {
+  float: right;
+  padding: 0 10px;
+}
+#system_status .value {
+  color: #ddd;
+  font-weight: bold;
+}
+#system_status .overview {
+  float: left;
+}
+
+form {
+  background: #f7f7f7;
+  border-radius: 5px;
+  -khtml-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  padding: 10px;
+  margin-top: 20px;
+}
+form div.links a {
+  
+}
+form div.links br {
+  display: none;
+}
+form input[type="checkbox"] {
+  float: left; 
+  width: 20px; 
+  margin-right: 10px; 
+  margin-top: -5px;
+}
+form input, form textarea {
+  color: 444;
+  padding: 2px 2px 2px 6px;
+  font-size: 16px;
+  background: #fff;
+  border: 1px solid #ccc;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+}
+form ul li input, form ul li select {
+  width: 300px;
+  max-width: 300px;
+  min-height: 25px;
+}
+form ul li select {
+  min-height: 20px;
+}
+form ul li textarea {
+  width: 98%;
+}
+form ul li {
+  margin-bottom: 20px;
+}
+form ul li.buttons {
+  padding: 0;
+}
+form ul li.buttons a {
+  float: right;
+  padding: 14px 0 0 14px;
+}
+form ul li.buttons input {
+  width: auto;
+  max-width: auto;
+  font-size: 18px;
+  margin-top: 5px;
+  padding: 2px 5px;
+  border: 1px solid #aaa;
+  background: -moz-linear-gradient(90deg, #ccc, #fff);
+  background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#ccc));
+}
+form ul li.buttons input:hover {
+  border: 1px solid #1A4E76;
+  color: #1368a9;
+}
+form ul li.buttons input:active {
+  background: -moz-linear-gradient(90deg, #fff, #ccc);
+  background: -wekkit-gradient(linear, left top, left bottom, from(#fff), to(#ccc));
+}
+form ul li label {
+  display: block;
+  width: auto;
+  font-size: 18px;
+  padding-bottom: 7px;
+}
+
+.admin-header { clear: both; }
+.admin-header h2 { float: left; font-size: 26px; margin-top: 10px;}
+.admin-header a.button { float: right; margin-left: 10px; margin-bottom: 0; font-size: 16px; }
+.show .box { font-size: 16px; color: #444; background: #f7f7f7; padding: 10px; -moz-border-radius: 0 0 5px 5px; -webkit-border-radius: 00 5px 5px;}
+.show .header { font-size: 22px; padding: 10px; color: #f7f7f7; background: -moz-linear-gradient(90deg, #444, #666); background: -webkit-gradient(linear, left top, left bottom, from(#666), to(#444)); -moz-border-radius: 5px 5px 0 0; -webkit-border-radius: 5px 5px 0 0; }
+.show .header.admin-header h1 { width: 600px; }
+.show .meta {}
+.show .meta .box > div { padding: 10px 0; }
+.show .meta strong { font-weight: bold; font-size: 18px; padding-right: 10px;}
+.show .meta span { }
+a.button { color:#666666; font-size:16px; font-weight:bold; height:15px; padding:10px 15px 8px; text-decoration:none; background: #f7f7f7; border-radius: 5px; -khtml-border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px; }
+
+#nav-menu { float: left; height: 40px; margin-top: 18px;}
+#nav-menu li { float: left; font-size: 16px; margin-right: 20px; }
+#nav-menu li { padding-top: 7px; }
+#nav-menu li.current  { float: left; height: 30px; color: #666; }
+#nav-menu a { color: #eee; text-decoration: none; }
+#nav-menu a:hover { color: #888; }
+#nav-menu li.current a:hover { color: #666; }
+#nav-menu .more-nav-wrapper { position: relative; }
+#nav-menu .more-nav { position: absolute; top: 28px; background: #2D2D2D; width: 400px; padding: 5px 10px 10px 10px; border: 1px solid #184773; border-top: 0 !important;}
+#nav-menu .more-nav .row { padding: 8px 0; }
+#nav-menu .more-nav .row:last-child { border: 0; padding-top: 8px; }
+#nav-menu .more-nav .row:first-child { padding-bottom: 8px; }
+#nav-menu .more-nav .row { border-bottom: 1px solid #184773;}
+#nav-menu .more-nav .row a { color: #fff; text-decoration: none; }

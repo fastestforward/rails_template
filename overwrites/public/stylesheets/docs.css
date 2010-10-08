@@ -1,0 +1,28 @@
+.index {}
+.index h1 {}
+.index ul { margin: 0 0 0 15px; }
+.index li { font-size: 16px; padding: 5px 0;}
+.index li a {}
+.section { margin: 60px 0; padding: 0px; background: #f7f7f7; border: 1px dotted #eee; -moz-border-radius: 5px; -webkit-border-radius: 5px; }
+.section.first { margin: 30px 0; background: #fff; border: 0;}
+.section .index { padding: 0 15px; }
+.section.first .index { padding: 0; margin-top: 10px; }
+.section h1, .section h2, .section h3, .section h4 { font-weight: bold; margin: 20px 0 5px 0; }
+.section h1 {}
+.section h2 { font-size: 22px; margin-top: 0px; padding: 15px; background: #ccc; -moz-border-radius: 5px 5px 0 0; -webkit-border-radius: 5px 5px 0 0; }
+.section h3 { font-size: 18px; margin-bottom: 0px; }
+.section h4 { font-size: 16px; }
+.section.first h4 { margin-top: 10px; }
+.section p { padding: 10px; }
+.section table { margin: 20px 0 10px 0; width: 100%; border: 1px solid #666; background: #E0EBEC; }
+.section table tr { border-bottom: 1px solid #666; }
+.section table tr td { padding: 7px; }
+.section table tr td:first-child { width: 150px; font-weight: bold; border-right: 1px solid #666;}
+.section table tr td ul { margin-left: 15px; }
+.section table tr td ul li { list-style-type: disc; padding: 2px; }
+.section pre { padding: 20px 0; margin: 15px 0 20px 0; background: #fff; border: 1px solid #ccc; overflow-x: auto; }
+.section .text { margin-top: 15px; }
+.sub-section { margin: 40px 0 60px 0; padding: 0 15px; }
+.sub-section .content, .sub-section .index { margin: 20px 0; }
+ul.notes { margin-bottom: 40px; }
+ul.notes li { padding-bottom: 5px; }
