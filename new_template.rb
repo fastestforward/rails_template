@@ -101,7 +101,7 @@ end
 git_commit_all 'Set up testing stack.' do
   inject_into_file 'config/application.rb', :after => 'g.stylesheets false' do
     %Q(
-        g.test_framework :rspec, :fixture => true, :view_specs => false
+        g.test_framework :rspec, :fixture => true, :view_specs => false, :helper_specs => false, :routing_specs => false
         g.fixture_replacement :factory_girl, :dir => "spec/factories"
         g.integration_tool :rspec)
   end
