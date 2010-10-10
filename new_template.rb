@@ -1,3 +1,5 @@
+# TODO install rails if it hasn't been already (new gemset)
+
 require 'active_support/core_ext/time/conversions'
 
 TEMPLATE_ROOT = File.dirname(File.expand_path(__FILE__))
@@ -33,15 +35,19 @@ end
 ## Initialize a sparkly new git repo
 git :init
 
-## Set up rvm
-run "rvm gemset create '#{APP_NAME}'"
-run "rvm 1.9.2@#{APP_NAME}"
-
 git_commit_all 'Initial commit.', :initial => true do
+  gemset = run 'rvm gemset name'
   # TODO make app name look purdy
   # NOTE keep rails version up to date
   supply_file '.rvmrc'
-  append_file '.rvmrc', "rvm gemset use #{APP_NAME}"
+  inject_into_file '.rvmrc', :after => 'rvm_install_on_use_flag=1' do
+    %Q(\nrvm #{RUBY_VERSION})
+  end
+  if !gemset.blank?
+    inject_into_file '.rvmrc', :after => 'rvm_gemset_create_on_use_flag=1' do
+      %Q(\nrvm gemset use #{APP_NAME})
+    end
+  end
 
   ## Clean up files before performing initial commit
   remove_file 'public/index.html'
