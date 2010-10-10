@@ -1,3 +1,5 @@
+require 'active_support/core_ext/time/conversions'
+
 TEMPLATE_ROOT = File.dirname(File.expand_path(__FILE__))
 source_paths << File.join(TEMPLATE_ROOT)
 APP_NAME = File.basename(destination_root)
@@ -186,4 +188,21 @@ git_commit_all 'Install and configure devise, set up user authentication section
     end
   RUBY
   end
+end
+
+git_commit_all 'Configure delayed_job gem.' do
+  append_file 'Rakefile' do
+    <<-RUBY
+      begin
+        require 'delayed/tasks'
+      rescue LoadError
+        STDERR.puts "Run `rake gems:install` to install delayed_job"
+      end
+    RUBY
+  end
+  
+  supply_file 'db/migrate/create_delayed_jobs.rb'
+  run "mv db/migrate/create_delayed_jobs.rb db/migrate/#{Time.now.to_s(:number)}_create_delayed_jobs.rb"
+  
+  supply_file 'features/step_definitions/delayed_job_steps.rb'
 end
