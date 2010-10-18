@@ -1,5 +1,3 @@
-# TODO install rails if it hasn't been already (new gemset)
-
 TEMPLATE_ROOT = File.dirname(File.expand_path(__FILE__))
 source_paths << File.join(TEMPLATE_ROOT)
 APP_NAME = File.basename(destination_root)
@@ -188,3 +186,5 @@ git_commit_all 'Configure delayed_job gem.' do
   
   supply_file 'features/step_definitions/delayed_job_steps.rb'
 end
+
+printf "Setup complete. Update database.yml, create the database and run migrations.\n"
