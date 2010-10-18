@@ -27,7 +27,7 @@ group :test, :development do
   gem 'database_cleaner'
   gem 'factory_girl_rails'
   gem 'faker'
-  gem 'rspec-rails', '>= 2.0.0.beta.22'
+  gem 'rspec-rails', '>= 2.0.1'
   gem 'email_spec'
   gem 'spork'
   gem 'launchy'
