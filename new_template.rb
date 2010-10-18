@@ -79,6 +79,7 @@ end
 
 git_commit_all 'Install jQuery.' do
   run 'rails g jquery:install --ui'
+  gsub_file 'config/application.rb', /config.action_view.javascript_expansions[:defaults] = %w()/, 'config.action_view.javascript_expansions[:defaults] = %w(jquery.js jquery-ui.js rails.js)'
 end
 
 git_commit_all 'Set up testing stack.' do
