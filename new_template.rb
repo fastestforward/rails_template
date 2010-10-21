@@ -73,6 +73,14 @@ git_commit_all 'Configure generators.' do
       end
     )
   end
+  
+  # TODO simplify (supply_files ...scaffold/*)
+  supply_file 'lib/templates/erb/scaffold/_form.html.erb'
+  supply_file 'lib/templates/erb/scaffold/edit.html.erb'
+  supply_file 'lib/templates/erb/scaffold/index.html.erb'
+  supply_file 'lib/templates/erb/scaffold/new.html.erb'
+  supply_file 'lib/templates/erb/scaffold/show.html.erb'
+  supply_file 'lib/templates/rails/scaffold_controller/controller.rb'
 end
 
 git_commit_all 'Install jQuery.' do
