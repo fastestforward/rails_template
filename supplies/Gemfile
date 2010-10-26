@@ -17,6 +17,7 @@ group :development do
   gem 'annotate'
   gem 'heroku_san'
   gem 'jquery-rails'
+  gem 'rails3-generators'
 end
 
 group :test, :development do
