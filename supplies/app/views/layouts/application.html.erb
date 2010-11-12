@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <%= yield :meta %>
+
+    <title><%= strip_tags(page_and_site_title) %></title>
+
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.1/build/reset/reset-min.css">
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.1/build/fonts/fonts-min.css">
+    <%= stylesheet_link_tag :all %>
+    <%= stylesheet_link_tag 'print', :media => 'print' %>
+    <!-- reset ie grid typography -->
+    <!--[if lt IE 8]>
+      <%= stylesheet_link_tag 'ie' %>
+    <![endif]-->
+
+    <%= javascript_include_tag :defaults %>
+    <%= yield :head %>
+
+    <%= csrf_meta_tag %>
+
+  </head>
+  <body class="<%= action_name %>">
+    <div id="bg">
+      <div id="header-bg"></div>
+      <div id="body-bg"></div>
+    </div>
+    <div id="container">
+      <div id="header">
+        <h1><%= link_to h(site_title), '/' %></h1>
+        <ul id="user_actions">
+          <% if current_user %>
+            <%= link_to 'Logout', users_sign_out_path, :method => :delete %>
+          <% else %>
+            <%= link_to 'Login', new_user_session_path %>
+            <%= link_to 'Signup', new_user_registration_path %>
+          <% end %>
+        </ul>
+        <ul id="nav-menu">
+
+        </ul>
+      </div>
+
+      <%= flash_messages %>
+
+      <div id="content">
+        <%= yield %>
+      </div>
+    </div>
+
+    <%= yield :foot %>
+
+    <script type="text/javascript">
+      jQuery(function() {
+        <%= yield :ready %>
+      })
+    </script>
+  </body>
+</html>

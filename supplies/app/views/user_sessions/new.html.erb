@@ -1,0 +1,26 @@
+<%= title 'Sign In' %>
+
+<%= form_for(resource, :as => resource_name, :url => session_path(resource_name)) do |f| %>
+  <%= devise_error_messages! %>
+
+  <ul>
+    <li>
+      <%= f.label :email %>
+      <%= f.text_field :email %>
+    </li>
+    <li>
+      <%= f.label :password %>
+      <%= f.password_field :password %>
+    </li>
+    <li>
+      <% if devise_mapping.rememberable? -%>
+        <%= f.check_box :remember_me %> <%= f.label :remember_me %>
+      <% end -%>
+    </li>
+
+    <li class="buttons">
+      <%= f.submit "Sign in" %>
+    </li>
+
+  </ul>
+<% end %>

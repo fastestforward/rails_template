@@ -1,0 +1,7 @@
+<%= title 'Index' %>
+
+<% if current_user %>
+  Signed in as <%= current_user.email %>.
+<% else %>
+  Not signed in.
+<% end %>
