@@ -103,8 +103,19 @@ git_commit_all 'Set up testing stack.' do
   gsub_file 'features/support/env.rb', /Capybara.default_selector = :css/, 'Dir["#{Rails.root}/spec/support/**/*.rb"].each {|f| require f}'
   inject_into_file 'features/support/env.rb', :after => 'Dir["#{Rails.root}/spec/support/**/*.rb"].each {|f| require f}' do
     %Q(\nrequire 'factory_girl/step_definitions')
+    %Q(\nrequire 'email_spec')
+    %Q(\nrequire 'email_spec/cucumber')
   end
   run 'rails g email_spec:steps'
+  inject_into_file 'spec/spec_helper.rb', :after => "require 'rspec/rails'"  do
+    %Q(\nrequire "email_spec")
+    %Q(
+      Spec::Runner.configure do |config|
+        config.include(EmailSpec::Helpers)
+        config.include(EmailSpec::Matchers)
+      end
+    )
+  end
 
   supply_file'features/step_definitions/debug_steps.rb'
 
