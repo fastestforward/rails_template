@@ -14,6 +14,7 @@ gem 'httparty'
 gem 'hoptoad_notifier'
 
 group :development do
+  gem 'sqlite3-ruby', :require => 'sqlite3'
   gem 'annotate'
   gem 'heroku_san'
   gem 'jquery-rails'

@@ -1,2 +1,2 @@
 #!/bin/bash
-rm -rf test_app && rails new test_app --template new_template.rb --skip-prototype --skip-test-unit --database=postgresql
+rm -rf test_app && rails new test_app --template new_template.rb --skip-prototype --skip-test-unit

@@ -51,7 +51,6 @@ git_commit_all 'Initial commit.', :initial => true do
   # add_file 'db/.gitkeep'
   # TODO remove this later when migrations are added
 
-  run 'cp config/database.yml config/database.yml.example'
   supply_file '.gitignore'
 
   supply_file 'lib/tasks/app.rake'
@@ -196,6 +195,13 @@ git_commit_all 'Configure delayed_job gem.' do
   run "mv db/migrate/create_delayed_jobs.rb db/migrate/#{Time.now.to_s(:number)}_create_delayed_jobs.rb"
   
   supply_file 'features/step_definitions/delayed_job_steps.rb'
+end
+
+git_commit_all 'Use PostgreSQL in database.yml.' do
+  supply_file 'config/database.yml'
+  run 'cp config/database.yml config/database.yml.example'
+  remove_file 'db/development.sqlite3'
+  gsub_file 'Gemfile', /  gem 'sqlite3-ruby', :require => 'sqlite3'./m, ''
 end
 
 printf "Setup complete. Update database.yml, create the database and run migrations.\n"
