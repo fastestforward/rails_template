@@ -210,6 +210,7 @@ end
 
 git_commit_all 'Use PostgreSQL in database.yml.' do
   supply_file 'config/database.yml'
+  gsub_file 'config/database.yml', /test_app/, @app_name
   run 'cp config/database.yml config/database.yml.example'
   remove_file 'db/development.sqlite3'
   gsub_file 'Gemfile', /  gem 'sqlite3-ruby', :require => 'sqlite3'./m, ''
