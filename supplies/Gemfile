@@ -12,6 +12,7 @@ gem 'will_paginate', '=3.0.pre2'
 gem 'carrierwave-rails3'
 gem 'httparty'
 gem 'hoptoad_notifier'
+gem 'formtastic'
 
 group :development do
   gem 'sqlite3-ruby', :require => 'sqlite3'

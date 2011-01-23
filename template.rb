@@ -44,8 +44,6 @@ git_commit_all 'Initial commit.', :initial => true do
   supply_file 'public/javascripts/application.js'
 
   supply_file 'public/stylesheets/application.css'
-  supply_file 'public/stylesheets/formtastic.css'
-  supply_file 'public/stylesheets/formtastic_changes.css'
   supply_file 'public/stylesheets/print.css'
 
   remove_file 'db/seeds.rb'
@@ -63,6 +61,11 @@ git_commit_all 'Initial commit.', :initial => true do
   supply_file 'Gemfile'
 
   run 'bundle install'
+end
+
+git_commit_all 'Install formtastic.' do
+  run 'rails g formtastic:install'
+  supply_file 'public/stylesheets/formtastic_changes.css'
 end
 
 git_commit_all 'Configure generators.' do
