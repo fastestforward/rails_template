@@ -39,6 +39,7 @@ git_commit_all 'Initial commit.', :initial => true do
 
   supply_file 'app/helpers/application_helper.rb'
   supply_file 'app/helpers/title_helper.rb'
+  gsub_file 'app/helpers/title_helper.rb', /Site Title/, @app_name.titleize
 
   supply_file 'public/javascripts/application.js'
 
