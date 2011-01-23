@@ -1,4 +1,3 @@
-
 form.formtastic fieldset ol li {
   display: block;
 }
@@ -25,4 +24,3 @@ form.formtastic fieldset ol li p.inline-hints {
 form.formtastic fieldset ol li p.inline-errors {
   margin:8px 0 0 20px;
 }
-  
